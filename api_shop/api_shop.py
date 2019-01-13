@@ -225,6 +225,11 @@ class ApiShop():
                 # axios payload 方式传递数据
                 # 如果使用axios，必须指定'X-Requested-With'='XMLHttpRequest'
                 data.update(json.loads(request.body))
+            else:
+                try:
+                    data.update(json.loads(request.body))
+                except:
+                    pass
         if framework=='flask':
             if request.args:
                 data.update(request.args.to_dict())
@@ -306,7 +311,7 @@ class ApiShop():
     def render_documents(self,request,*url):
         '''渲染文档'''
         if framework == 'django':
-            return HttpResponse(content='{% verbatim %}'+self.document+'{% endverbatim %}', content_type=None, status=200, reason=None, charset=None)
+            return HttpResponse(content=self.document, content_type=None, status=200, reason=None, charset=None)
         elif framework == 'flask':
             return render_template_string('{% raw %}'+self.document+'{% endraw %}')
 

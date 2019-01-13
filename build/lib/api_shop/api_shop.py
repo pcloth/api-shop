@@ -19,7 +19,7 @@ for stack in stacks:
             raise 'ApiFactory： django版本不兼容，推荐使用2.1版本，或者去修改JsonResponse, HttpResponse引入位置。'
 if not framework:
     try:
-        import flask_restful
+        from flask import render_template_string,jsonify
         framework = 'flask'
     except:
         raise 'ApiFactory：目前只兼容django和flask。'
@@ -61,13 +61,13 @@ def return_response(msg=None, status_code=400):
         if framework == 'django':
             return HttpResponse(msg, status=status_code)
         if framework == 'flask':
-            return flask_restful.abort(status_code,message=msg)
+            return jsonify({'msg':msg}),status_code
         raise '不支持的framework'
     else:
         if framework == 'django':
             return JsonResponse({'status': status_code, 'message': msg})
         if framework == 'flask':
-            return flask_restful.abort(status_code,message=msg)
+            return jsonify({'msg':msg}),status_code
         raise '不支持的framework' 
 
 class Api():
@@ -101,7 +101,7 @@ class Api():
             if framework == 'django':
                 return JsonResponse(ret, status=status_code)
             if framework == 'flask':
-                return flask_restful.abort(status_code,message=msg)
+                return jsonify(ret),status_code
             raise '不支持的framework'
         else:
             return return_response('没有这个 {} 方法。'.format(method))
@@ -225,6 +225,18 @@ class ApiShop():
                 # axios payload 方式传递数据
                 # 如果使用axios，必须指定'X-Requested-With'='XMLHttpRequest'
                 data.update(json.loads(request.body))
+            else:
+                try:
+                    data.update(json.loads(request.body))
+                except:
+                    pass
+        if framework=='flask':
+            if request.args:
+                data.update(request.args.to_dict())
+            if request.form:
+                data.update(request.form.to_dict())
+            if request.json:
+                data.update(request.json)
         return data
 
     def __verify(self, conf, name, value):
@@ -298,10 +310,16 @@ class ApiShop():
 
     def render_documents(self,request,*url):
         '''渲染文档'''
-        return HttpResponse(content=self.document, content_type=None, status=200, reason=None, charset=None)
+        if framework == 'django':
+            return HttpResponse(content=self.document, content_type=None, status=200, reason=None, charset=None)
+        elif framework == 'flask':
+            return render_template_string('{% raw %}'+self.document+'{% endraw %}')
 
     def get_api_data(self, request, *url):
         '''返回给文档页面数据'''
-        return JsonResponse({'data': self.conf,'options':self.options})
-        # return JsonResponse({'d':1})
+        if framework == 'django':
+            return JsonResponse({'data': self.conf,'options':self.options})
+        elif framework == 'flask':
+            return jsonify({'data': self.conf,'options':self.options})
+        
  
