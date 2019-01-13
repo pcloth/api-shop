@@ -1,4 +1,3 @@
-<!-- {% verbatim %} -->
 <link href="https://unpkg.com/element-ui@2.4.11/lib/theme-chalk/index.css" rel="stylesheet">
 <script src="https://unpkg.com/vue/dist/vue.js"></script>
 <script src="https://unpkg.com/element-ui@2.4.11/lib/index.js"></script>
@@ -184,25 +183,32 @@
           if (method[i].type == 'int' || method[i].type == 'float') val = `${val}(${min},${max})`;
           mockConf[method[i].name] = Mock.mock(val)
         }
-        console.log('发送mock数据包', mockConf)
-        this.ajax(key, this.options.base_url + this.currentApi.url, mockConf).then(res => {
+        console.log('发送mock数据包', mockConf, key)
+
+        if (key == 'GET' || key == 'DELETE') mockConf = { params: mockConf };
+
+        axios[key.toLowerCase()](this.options.base_url + this.currentApi.url, mockConf).then(res => {
           console.log('mock数据访问api成功：', res);
         }).catch(error => {
           console.log('mock数据访问api失败：', error);
         })
+
       },
       ajax(method, url, data) {
+        console.log(method, url, data)
         let ajaxObject = {
           url: url,
           method: method,
           timeout: 30000,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
+
         }
         if (method == 'get' || method == 'delete') {
+          console.log('get!', data)
           ajaxObject.params = data
         } else {
+          ajaxObject.headers = {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
           ajaxObject.data = data
         }
         return axios(ajaxObject)
@@ -213,4 +219,3 @@
   new Ctor().$mount('#app')
 
 </script>
-<!-- {% endverbatim %} -->
