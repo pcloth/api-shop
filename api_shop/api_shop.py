@@ -3,7 +3,7 @@ api 工厂
 可以让用户用数据来配置api模块，并自动校验参数合法性和生成文档页面。
 by pcloth
 '''
-import json, traceback
+import json, traceback, os
 
 # django引入包
 framework = None
@@ -23,24 +23,23 @@ if not framework:
         framework = 'flask'
     except:
         raise 'ApiFactory：目前只兼容django和flask。'
-import os
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
 
 BAD_REQUEST = True
 
 def dynamic_import(name):
     components = name.split('.')
-    mod = __import__('.'.join(components[:-1]))
-    for comp in components[1:]:
-        if hasattr(mod,comp):
-            mod = getattr(mod,comp)
-
-    # mod = __import__(components[0])
-    # for comp in components[1:]:
-    #     mod = getattr(mod, comp)
-    return mod
+    path = '.'.join(components[:-1])
+    try:
+        mod = __import__(path)
+        for comp in components[1:]:
+            if hasattr(mod,comp):
+                mod = getattr(mod,comp)
+        return mod
+    except:
+        eval('form {} import {}'.format(path, components[-1]))
+        return eval(components[-1])
 
 class Namespace(dict):
     def __getattr__(self, name):
@@ -127,19 +126,20 @@ class ApiShop():
 
         options = {
             'base_url':'/api/',# 基础url，用以组合给前端的api url
-            'document':BASE_DIR+'/api_shop/static/document.html' # 文档路由渲染的模板
+            
         }
         '''
         if not framework:
             raise 'ApiFactory 不支持除了django和flask之外的其他框架！'
 
-        if not options:
-            self.options = {
+        self.options = {
                 'base_url':'/api/', # 基础url，用以组合给前端的api url
-                'bad_request':True, # 参数bad_request如果是真，发生错误返回一个坏请求给前端，否则都返回200的response，里面附带status=error和msg附带错误信息
+                'bad_request': True,  # 参数bad_request如果是真，发生错误返回一个坏请求给前端，否则都返回200的response，里面附带status=error和msg附带错误信息
+                'document': BASE_DIR + '/api_shop/static/document.html'  # 文档路由渲染的模板
+                
             }
-        else:
-            self.options = options
+        if options:
+            self.options.update(options)
 
         try:
             if self.options.get('document'):

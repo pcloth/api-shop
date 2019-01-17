@@ -24,6 +24,12 @@ sudo pip install api-shop
 from api_shop from ApiShop,Api
 # ApiShop 是构造类
 # Api是接口类
+# ApiShop(conf, options)
+# options = {
+#   'base_url':'/api/', # 基础url，用以组合给前端的api url
+#   'bad_request': True,  # 参数bad_request如果是真，发生错误返回一个坏请求给前端，否则都返回200的response，里面附带status=error和msg附带错误信息
+#   'document': BASE_DIR + '/api_shop/static/document.html'  # 文档路由渲染的模板
+# }
 ```
 
 ### [Django例子](https://github.com/pcloth/api-shop/tree/master/django_demo)

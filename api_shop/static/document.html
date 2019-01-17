@@ -6,40 +6,39 @@
 <script src="https://cdn.bootcss.com/Mock.js/1.0.1-beta3/mock-min.js"></script>
 <!-- ApiFactory -->
 <style>
-  .el-header,
-  .el-footer {
-    background-color: #B3C0D1;
-    color: #333;
-    text-align: center;
-  }
-
-  .el-aside {
-    background-color: #D3DCE6;
-    color: #333;
-    text-align: center;
-  }
-
-  .el-main {
-    background-color: #E9EEF3;
-    color: #333;
-    text-align: center;
-  }
-
-  .api-div {
-    float: left;
-    background-color: #fff;
-    width: 100%;
-    text-align: left;
-    border-radius: 3px;
-  }
-
-  .api-url {
-    margin-left: 20px;
-  }
-
+    .el-header,
+    .el-footer {
+        background-color: #B3C0D1;
+        color: #333;
+        text-align: center;
+    }
+    
+    .el-aside {
+        background-color: #D3DCE6;
+        color: #333;
+        text-align: center;
+    }
+    
+    .el-main {
+        background-color: #E9EEF3;
+        color: #333;
+        text-align: center;
+    }
+    
+    .api-div {
+        float: left;
+        background-color: #fff;
+        width: 100%;
+        text-align: left;
+        border-radius: 3px;
+    }
+    
+    .api-url {
+        margin-left: 20px;
+    }
 </style>
 <div id="app">
-  <template>
+    <template>
     <el-container>
       <el-header style="line-height:1.5;">
         <div>api-shop document</div>
@@ -87,137 +86,139 @@
                       <template slot-scope="scope">
                         <el-checkbox v-model="scope.row.required" style="pointer-events: none;"></el-checkbox>
                       </template>
-                    </el-table-column>
-                    <el-table-column prop="min" label="最小值/长度" width="120">
-                    </el-table-column>
-                    <el-table-column prop="max" label="最大值/长度" width="120">
-                    </el-table-column>
-                    <el-table-column prop="description" label="描述">
-                    </el-table-column>
-                  </el-table>
-                  <el-button type="primary" style="float: left;margin: 10px 0;" @click="mockTest(method,key)">
-                    {{`Mock Test ${key}`}}
-                  </el-button>
-                </el-form-item>
-              </template>
-              <el-form-item label="document">
-                <el-input readonly type="textarea" autosize v-model="currentApi.document">
-                </el-input>
-              </el-form-item>
-            </el-form>
-          </el-row>
-          <el-row>
-          </el-row>
-        </el-main>
-      </el-container>
-      <el-footer> writed by pcloth@gmail.com</el-footer>
+    </el-table-column>
+    <el-table-column prop="min" label="最小值/长度" width="120">
+    </el-table-column>
+    <el-table-column prop="max" label="最大值/长度" width="120">
+    </el-table-column>
+    <el-table-column prop="description" label="描述">
+    </el-table-column>
+    </el-table>
+    <el-button type="primary" style="float: left;margin: 10px 0;" @click="mockTest(method,key)">
+        {{`Mock Test ${key}`}}
+    </el-button>
+    </el-form-item>
+    </template>
+    <el-form-item label="document">
+        <el-input readonly type="textarea" autosize v-model="currentApi.document">
+        </el-input>
+    </el-form-item>
+    </el-form>
+    </el-row>
+    <el-row>
+    </el-row>
+    </el-main>
     </el-container>
-  </template>
+    <el-footer> writed by pcloth@gmail.com</el-footer>
+    </el-container>
+    </template>
 </div>
 <script>
-  var Main = {
-    data() {
-      return {
-        // apiCount: 100,
-        apiList: [],
-        currentApi: {},
-        options: {},
-        testData: {}
-      }
-    },
-    computed: {
-      // 计算属性的 getter
-      testString: function() {
-        // `this` 指向 vm 实例
-        return JSON.stringify(this.testData);
-      }
-    },
-    created() {
-      this.getApi();
-    },
-    methods: {
-      getApi() {
-        this.ajax('get', '/api/api_data')
-          .then((res) => {
-            this.apiList = res.data.data;
-            this.options = res.data.options;
+    var Main = {
+        data() {
+            return {
+                // apiCount: 100,
+                apiList: [],
+                currentApi: {},
+                options: {},
+                testData: {}
+            }
+        },
+        computed: {
+            // 计算属性的 getter
+            testString: function() {
+                // `this` 指向 vm 实例
+                return JSON.stringify(this.testData);
+            }
+        },
+        created() {
+            this.getApi();
+        },
+        methods: {
+            getApi() {
+                let base = window.location.pathname.split('document')[0];
+                this.ajax('get', `${base}api_data`)
+                    .then((res) => {
+                        this.apiList = res.data.data;
+                        this.options = res.data.options;
 
-          })
-          .catch((error) => {
-            console.log('error', error);
-          });
+                    })
+                    .catch((error) => {
+                        console.log('error', error);
+                    });
 
 
-      },
-      viewDocument(api) {
-        this.$set(this, 'currentApi', api);
-        console.log(api)
+            },
+            viewDocument(api) {
+                this.$set(this, 'currentApi', api);
+                console.log(api)
 
-        this.testData = Mock.mock({
-          "string|1-10": "★"
-        });
-      },
-      getRandomInt(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-      },
+                this.testData = Mock.mock({
+                    "string|1-10": "★"
+                });
+            },
+            getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            },
 
-      mockTest(method, key) {
-        this.$alert('请打开F12查看发送情况。', '提示')
-        let mapping = {
-          str: '@string',
-          int: '@integer',
-          float: '@float',
-          bool: '@boolean',
-          list: '@range',
-          set: '@range'
+            mockTest(method, key) {
+                this.$alert('请打开F12查看发送情况。', '提示')
+                let mapping = {
+                    str: '@string',
+                    int: '@integer',
+                    float: '@float',
+                    bool: '@boolean',
+                    list: '@range',
+                    set: '@range'
+                }
+                let mockConf = {}
+                for (let i in method) {
+                    let min = method[i].min ? method[i].min : 1;
+                    let max = method[i].max ? method[i].max : 20;
+                    let length = this.getRandomInt(min, max);
+                    let val = mapping[method[i].type] ? mapping[method[i].type] : '@character'
+                    if (method[i].type == 'list' || method[i].type == 'set') val = `${val}(${length})`;
+                    if (method[i].type == 'str') val = `${val}("lower",${length})`;
+                    if (method[i].type == 'int' || method[i].type == 'float') val = `${val}(${min},${max})`;
+                    mockConf[method[i].name] = Mock.mock(val)
+                }
+                console.log('发送mock数据包', mockConf, key)
+
+                if (key == 'GET' || key == 'DELETE') mockConf = {
+                    params: mockConf
+                };
+
+                axios[key.toLowerCase()](this.options.base_url + this.currentApi.url, mockConf).then(res => {
+                    console.log('mock数据访问api成功：', res);
+                }).catch(error => {
+                    console.log('mock数据访问api失败：', error);
+                })
+
+            },
+            ajax(method, url, data) {
+                console.log(method, url, data)
+                let ajaxObject = {
+                    url: url,
+                    method: method,
+                    timeout: 30000,
+
+                }
+                if (method == 'get' || method == 'delete') {
+                    console.log('get!', data)
+                    ajaxObject.params = data
+                } else {
+                    ajaxObject.headers = {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                    ajaxObject.data = data
+                }
+                return axios(ajaxObject)
+            }
         }
-        let mockConf = {}
-        for (let i in method) {
-          let min = method[i].min ? method[i].min : 1;
-          let max = method[i].max ? method[i].max : 20;
-          let length = this.getRandomInt(min, max);
-          let val = mapping[method[i].type] ? mapping[method[i].type] : '@character'
-          if (method[i].type == 'list' || method[i].type == 'set') val = `${val}(${length})`;
-          if (method[i].type == 'str') val = `${val}("lower",${length})`;
-          if (method[i].type == 'int' || method[i].type == 'float') val = `${val}(${min},${max})`;
-          mockConf[method[i].name] = Mock.mock(val)
-        }
-        console.log('发送mock数据包', mockConf, key)
-
-        if (key == 'GET' || key == 'DELETE') mockConf = { params: mockConf };
-
-        axios[key.toLowerCase()](this.options.base_url + this.currentApi.url, mockConf).then(res => {
-          console.log('mock数据访问api成功：', res);
-        }).catch(error => {
-          console.log('mock数据访问api失败：', error);
-        })
-
-      },
-      ajax(method, url, data) {
-        console.log(method, url, data)
-        let ajaxObject = {
-          url: url,
-          method: method,
-          timeout: 30000,
-
-        }
-        if (method == 'get' || method == 'delete') {
-          console.log('get!', data)
-          ajaxObject.params = data
-        } else {
-          ajaxObject.headers = {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-          ajaxObject.data = data
-        }
-        return axios(ajaxObject)
-      }
     }
-  }
-  var Ctor = Vue.extend(Main)
-  new Ctor().$mount('#app')
-
+    var Ctor = Vue.extend(Main)
+    new Ctor().$mount('#app')
 </script>
 <!-- {% endverbatim %} -->
