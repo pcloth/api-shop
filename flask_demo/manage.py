@@ -29,8 +29,8 @@ conf = [
         }
     },
     {
-        'url': 'login/test',
-        'class': 'api.views.api_login',
+        'url': 'test',
+        'class': 'api.views.test',
         'name': '账户登录',
         'methods': {
             'POST': [

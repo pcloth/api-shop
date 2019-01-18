@@ -303,12 +303,10 @@ class ApiShop():
         for line in par_conf:
             key = line['name']
             errmsg_, value = self.__verify(line, key, parameter.get(key))
-            print('-------------------',value,type(value))
             if errmsg_:
                 errmsg.append(errmsg_)
             else:
                 setattr(adc, key, value)
-        print(adc)
         return errmsg, adc
         
     def api_entry(self,request,*url):

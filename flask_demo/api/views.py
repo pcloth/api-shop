@@ -4,8 +4,9 @@ from api_shop import Api
 
 
 class api_login(Api):
+    '''api登陆接口，方便微信用户绑定账户'''
     def post(self,request,data=None):
-        '''api登陆接口，方便微信用户绑定账户'''
+        
         username = data.username
         password = data.password
         if len(username)<=4:
@@ -16,6 +17,12 @@ class api_login(Api):
 
 
 class test(Api):
+    '''健康预测计算：
+    1
+    2
+    3
+    4
+    '''
     def get(self,request,data=None):
         return {'msg':data}
     def delete(self,request,data=None):
