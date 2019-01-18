@@ -3,7 +3,7 @@ api 工厂
 可以让用户用数据来配置api模块，并自动校验参数合法性和生成文档页面。
 by pcloth
 '''
-import json, traceback
+import json, traceback, os, re
 
 # django引入包
 framework = None
@@ -23,31 +23,30 @@ if not framework:
         framework = 'flask'
     except:
         raise 'ApiFactory：目前只兼容django和flask。'
-import os
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
 
 BAD_REQUEST = True
 
 def dynamic_import(name):
     components = name.split('.')
-    mod = __import__('.'.join(components[:-1]))
-    for comp in components[1:]:
-        if hasattr(mod,comp):
-            mod = getattr(mod,comp)
-
-    # mod = __import__(components[0])
-    # for comp in components[1:]:
-    #     mod = getattr(mod, comp)
-    return mod
+    path = '.'.join(components[:-1])
+    try:
+        mod = __import__(path)
+        for comp in components[1:]:
+            if hasattr(mod,comp):
+                mod = getattr(mod,comp)
+        return mod
+    except:
+        eval('form {} import {}'.format(path, components[-1]))
+        return eval(components[-1])
 
 class Namespace(dict):
     def __getattr__(self, name):
         try:
             return self[name]
         except KeyError:
-            raise AttributeError(name)
+            raise AttributeError('没有找到属性：{}'.format(name))
 
     def __setattr__(self, name, value):
         self[name] = value
@@ -127,19 +126,20 @@ class ApiShop():
 
         options = {
             'base_url':'/api/',# 基础url，用以组合给前端的api url
-            'document':BASE_DIR+'/api_shop/static/document.html' # 文档路由渲染的模板
+            
         }
         '''
         if not framework:
             raise 'ApiFactory 不支持除了django和flask之外的其他框架！'
 
-        if not options:
-            self.options = {
+        self.options = {
                 'base_url':'/api/', # 基础url，用以组合给前端的api url
-                'bad_request':True, # 参数bad_request如果是真，发生错误返回一个坏请求给前端，否则都返回200的response，里面附带status=error和msg附带错误信息
+                'bad_request': True,  # 参数bad_request如果是真，发生错误返回一个坏请求给前端，否则都返回200的response，里面附带status=error和msg附带错误信息
+                'document': BASE_DIR + '/api_shop/static/document.html'  # 文档路由渲染的模板
+                
             }
-        else:
-            self.options = options
+        if options:
+            self.options.update(options)
 
         try:
             if self.options.get('document'):
@@ -165,16 +165,14 @@ class ApiShop():
         
         self.api_count = len(self.conf)
 
-      
         
     def __class_to_json(self, methods):
-        '''将python的数据对象类切换成字符串'''
-        fix_list = ['str', 'list', 'dict', 'set', 'int', 'float', 'bool', 'complex']
+        '''将python的dict数据对象类切换成字符串'''
         string = methods.__str__()
-        for fix in fix_list:
-            string = string.replace("<class '{}'>".format(fix), '"{}"'.format(fix))
-        
-        
+        class_list = re.compile(r"""<class '[\w|\.]*'>""",0).findall(string)
+        for line in class_list:
+            string = string.replace(line, "'{}'".format(line.split("'")[1]))
+
         return eval(string)
 
     def __make_model(self, conf):
@@ -249,29 +247,48 @@ class ApiShop():
 
         # 检查默认值
         if not value and default_:
+            
             value = default_
+
         # 检查必要值
         if required_ == True and not value:
             return '必要参数 {} 缺失'.format(name), None
         # 检查并转换类型
         if type_ and type(value) != type_:
             try:
-                value = type_(json.loads(value))
+                if type_ in [list, dict, set, tuple]:
+                    # 容器类，json验证后转换
+                    value = type_(json.loads(value))
+                else:
+                    value = type_(value)
             except:
                 return '参数 {} 必须是 {} '.format(name, type_), None
         # 检查最小值/长度
         if min_:
-            if type(value) in [str, list, dict, set] and len(value) < min_:
-                return '参数 {} 的最小长度是 {} '.format(name, min_), None
-            if type(value) in [int, float, bool, complex] and value < min_:
-                return '参数 {} 的最小值是 {} '.format(name, min_), None
+            if type_ in [str, list, dict, set]:
+                if len(value) < min_:
+                    return '参数 {} 的最小长度是 {} '.format(name, min_), None
+            elif type_ in [int, float, bool, complex]:
+                if value < min_:
+                    return '参数 {} 的最小值是 {} '.format(name, min_), None
+            else:
+                # 其他自定义类型
+                if value < type_(min_):
+                    return '参数 {} 的最小值是 {} '.format(name, min_), None
 
         # 检查最大值/长度
         if max_:
-            if type(value) in [str, list, dict, set] and len(value) > max_:
-                return '参数 {} 的最大长度是 {} '.format(name, max_), None
-            if type(value) in [int, float, bool, complex] and value > max_:
-                return '参数 {} 的最大值是 {} '.format(name, max_), None
+            if type_ in [str, list, dict, set]:
+                if len(value) > max_:
+                    return '参数 {} 的最大长度是 {} '.format(name, max_), None
+            elif type_ in [int, float, bool, complex]:
+                if value > max_:
+                    return '参数 {} 的最大值是 {} '.format(name, max_), None
+            else:
+                # 其他自定义类型
+                if value > type_(max_):
+                    return '参数 {} 的最大值是 {} '.format(name, max_), None
+        
         return None, value
 
     def verify_parameter(self, request, par_conf):
@@ -286,10 +303,12 @@ class ApiShop():
         for line in par_conf:
             key = line['name']
             errmsg_, value = self.__verify(line, key, parameter.get(key))
+            print('-------------------',value,type(value))
             if errmsg_:
                 errmsg.append(errmsg_)
             else:
-                setattr(adc,key,value)
+                setattr(adc, key, value)
+        print(adc)
         return errmsg, adc
         
     def api_entry(self,request,*url):
