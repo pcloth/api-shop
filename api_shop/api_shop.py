@@ -38,7 +38,7 @@ def dynamic_import(name):
                 mod = getattr(mod,comp)
         return mod
     except:
-        eval('form {} import {}'.format(path, components[-1]))
+        exec('from {} import {}'.format(path, components[-1]))
         return eval(components[-1])
 
 class Namespace(dict):
