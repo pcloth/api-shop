@@ -6,6 +6,7 @@ from api_shop import Api
 class api_login(Api):
     '''api登陆接口，方便微信用户绑定账户'''
     def post(self,request,data=None):
+        return {}
         
         username = data.username
         password = data.password

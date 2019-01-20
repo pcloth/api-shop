@@ -245,14 +245,18 @@ class ApiShop():
         max_ = conf.get('max')
         default_ = conf.get('default')
 
-        # 检查默认值
-        if not value and default_:
-            
+        # 没有值得情况，包括'',[],()这种，但是要排除0，因为0经常用于标记值
+        if not value and value!=0 and default_:
             value = default_
 
-        # 检查必要值
-        if required_ == True and not value:
+         # 检查必要值
+        if required_ == True and not value and value!=0:
             return '必要参数 {} 缺失'.format(name), None
+
+        # 非必要值，也没有值
+        if not required_ and value is None:
+            return None,None
+            
         # 检查并转换类型
         if type_ and type(value) != type_:
             try:
@@ -263,6 +267,7 @@ class ApiShop():
                     value = type_(value)
             except:
                 return '参数 {} 必须是 {} '.format(name, type_), None
+
         # 检查最小值/长度
         if min_:
             if type_ in [str, list, dict, set]:

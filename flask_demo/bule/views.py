@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, abort
 from jinja2 import TemplateNotFound
 import sys
 sys.path.insert(0, "D:\\codes\\api-shop")
-from api_shop import ApiShop, Api, data_format
+from tapi_shop import ApiShop, Api, data_format
 from flask import request
 
 simple_page = Blueprint('simple_page', __name__,
@@ -29,8 +29,7 @@ conf = [
             'POST': [
                 {'name': 'username', 'type': str, 'required': True,
                     'min': 3, 'max': 24, 'description': '用户名'},
-                {'name': 'ddd', 'type': str, 'required': False, 'min': 4,
-                    'max': 6, 'description': '日期', 'default': '2018-05-05'},
+                {'name': 'ddd', 'type': str,  'min': 20,'max': 6, 'description': '日期'},
             ]
         }
     },
@@ -52,8 +51,9 @@ conf = [
 ]
 
 
-af = ApiShop(conf)
+af = ApiShop(conf,{'document': 'C:\\codes\\api-shop\\flask_demo/tapi_shop/static/document.html'})
 
+print(af.options)
 
 @simple_page.route('/api/<regex("([\s\S]*)"):url>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 def hello_world(url):
