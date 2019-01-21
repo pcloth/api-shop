@@ -227,13 +227,19 @@ class ApiShop():
                     data.update(json.loads(request.body))
                 except:
                     pass
-        if framework=='flask':
-            if request.args:
+        if framework == 'flask':
+            if request.args:                
                 data.update(request.args.to_dict())
-            if request.form:
+            elif request.form:
                 data.update(request.form.to_dict())
-            if request.json:
-                data.update(request.json)
+            else:
+                try:
+                    # 某些特殊错误的封装，将get,Content-Type: application/json
+                    jd = request.get_json()
+                    if jd:
+                        data.update(jd)
+                except:
+                    pass
         return data
 
     def __verify(self, conf, name, value):
