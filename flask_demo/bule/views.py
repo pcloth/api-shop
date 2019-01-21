@@ -53,7 +53,7 @@ conf = [
 
 af = ApiShop(conf,{'document': 'C:\\codes\\api-shop\\flask_demo/tapi_shop/static/document.html'})
 
-print(af.options)
+print(af.url_dict)
 
 @simple_page.route('/api/<regex("([\s\S]*)"):url>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 def hello_world(url):

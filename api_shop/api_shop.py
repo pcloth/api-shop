@@ -34,8 +34,7 @@ def dynamic_import(name):
     try:
         mod = __import__(path)
         for comp in components[1:]:
-            if hasattr(mod,comp):
-                mod = getattr(mod,comp)
+            mod = getattr(mod,comp)
         return mod
     except:
         exec('from {} import {}'.format(path, components[-1]))
