@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='api-shop',
-    version='1.4.10',
+    version='1.5.0',
     description=(
         'RESTful api shop for django or flask'
     ),

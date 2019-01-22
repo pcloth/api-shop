@@ -18,12 +18,12 @@ def show(page):
         return render_template('pages/%s.html' % page)
     except TemplateNotFound:
         abort(404)
-
+from api.views import api_login
 
 conf = [
     {
         'url': 'login',
-        'class': 'api.views.api_login',
+        'class': api_login,#'api.views.api_login',
         'name': '账户登录',
         'methods': {
             'POST': [
@@ -43,7 +43,9 @@ conf = [
                     'min': 3, 'max': 24, 'description': '用户名'},
                 {'name': 'ddd', 'type': data_format.datetime, 'required': False, 'min': '2018-01-01',
                     'max': '2019-01-01', 'description': '日期', 'default': '2018-05-05'},
-            ]
+            ],
+            'DELETE':[],
+            'GET':[]
         }
     },
 
@@ -51,7 +53,7 @@ conf = [
 ]
 
 
-af = ApiShop(conf,{'document': 'C:\\codes\\api-shop\\flask_demo/tapi_shop/static/document.html'})
+af = ApiShop(conf,{'document': 'd:\\codes\\api-shop\\flask_demo/tapi_shop/static/document.html'})
 
 print(af.url_dict)
 

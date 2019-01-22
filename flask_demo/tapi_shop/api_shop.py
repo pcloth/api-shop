@@ -29,6 +29,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BAD_REQUEST = True
 
 def dynamic_import(name):
+    if type(name)!=str:
+        # 直接传入的对象
+        return name
     components = name.split('.')
     path = '.'.join(components[:-1])
     try:
@@ -139,12 +142,12 @@ class ApiShop():
             }
         if options:
             self.options.update(options)
-
         try:
             if self.options.get('document'):
                 doc_file = open(self.options.get('document'),mode='r',encoding='utf-8')
             else:
-                doc_file = open(BASE_DIR+'/api_shop/static/document.html',mode='r',encoding='utf-8')
+                doc_file = open(BASE_DIR + '/api_shop/static/document.html', mode='r', encoding='utf-8')
+            
             self.document = doc_file.read()
         except:
             self.document = '''<h1>没有找到文档模板</h1>'''
@@ -167,7 +170,7 @@ class ApiShop():
         
     def __class_to_json(self, methods):
         '''将python的dict数据对象类切换成字符串'''
-        string = methods.__str__()
+        string = str(methods) #.__str__()
         class_list = re.compile(r"""<class '[\w|\.]*'>""",0).findall(string)
         for line in class_list:
             string = string.replace(line, "'{}'".format(line.split("'")[1]))
@@ -178,6 +181,9 @@ class ApiShop():
         # 将字符串里的function模块和函数加载进来，并写入到run_function字段方便调用。
         for i in range(len(conf)):
             model = dynamic_import(conf[i]['class'])
+            if type(conf[i]['class'])!=str:
+                # 直接使用对象
+                conf[i]['class'] = self.__class_to_json(conf[i]['class'])
             self.url_dict.update({
                 conf[i]['url']: model,
             })
@@ -187,7 +193,14 @@ class ApiShop():
             conf[i]['methods'] = self.__class_to_json(conf[i]['methods'])
             
             if hasattr(model,'__doc__'):
-                conf[i]['document'] = getattr(model,'__doc__')
+                conf[i]['document'] = getattr(model, '__doc__')
+            conf[i]['methods_documents'] = {}
+            for key in ['get', 'post', 'delete', 'put', 'patch']:
+                # 把业务类子方法的文档添加到数据表
+                if hasattr(model, key):
+                    mt = getattr(model, key)
+                    if hasattr(mt, '__doc__'):
+                        conf[i]['methods_documents'].update({key.upper():getattr(mt, '__doc__')})
 
         return conf
 
@@ -227,15 +240,22 @@ class ApiShop():
                     data.update(json.loads(request.body))
                 except:
                     pass
-        if framework=='flask':
-            if request.args:
+        if framework == 'flask':
+            if request.args:                
                 data.update(request.args.to_dict())
-            if request.form:
+            elif request.form:
                 data.update(request.form.to_dict())
-            if request.json:
-                data.update(request.json)
+            else:
+                try:
+                    # 某些特殊错误的封装，将get,Content-Type: application/json
+                    jd = request.get_json()
+                    if jd:
+                        data.update(jd)
+                except:
+                    pass
         return data
 
+        
     def __verify(self, conf, name, value):
         # 校验数据并转换格式
         required_ = conf.get('required')
@@ -243,6 +263,7 @@ class ApiShop():
         min_ = conf.get('min')
         max_ = conf.get('max')
         default_ = conf.get('default')
+
 
         # 没有值得情况，包括'',[],()这种，但是要排除0，因为0经常用于标记值
         if not value and value!=0 and default_:
@@ -252,9 +273,12 @@ class ApiShop():
         if required_ == True and not value and value!=0:
             return '必要参数 {} 缺失'.format(name), None
 
-        # 非必要值，也没有值
-        if not required_ and value is None:
-            return None,None
+        # 检查空值，这个时候因为有些空值还处于字符串形态，比如'[]'，所以有可能会被跳过        
+        if not value and value != 0:
+            if required_:
+                return '参数 {} 不能为空。'.format(name), None,
+            else:
+                return None, value
             
         # 检查并转换类型
         if type_ and type(value) != type_:
@@ -263,10 +287,18 @@ class ApiShop():
                     # 容器类，json验证后转换
                     value = type_(json.loads(value))
                 else:
+                    # 其他类型或者类型转换器
                     value = type_(value)
             except:
                 return '参数 {} 必须是 {} '.format(name, type_), None
 
+        # 检查转换后的'',[],(),{}都放弃长度检查，0继续检查大小。
+        if not value and value != 0:
+            if required_:
+                return '参数 {} 不能为空。'.format(name), None,
+            else:
+                return None, value
+            
         # 检查最小值/长度
         if min_:
             if type_ in [str, list, dict, set]:
@@ -318,7 +350,7 @@ class ApiShop():
         model = self.__find_api_function(url)
         methons = self.__find_api_methons(url)
         
-        if methons and methons.get(request.method):
+        if methons and not methons.get(request.method) is None:
             # 有配置方法和参数，校验参数合法性，并转换参数
             errmsg, data = self.verify_parameter(request, methons.get(request.method))
             if errmsg:
