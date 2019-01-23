@@ -1,9 +1,17 @@
+#!/usr/bin/env python3
+
 '''
 api 工厂
 可以让用户用数据来配置api模块，并自动校验参数合法性和生成文档页面。
 by pcloth
 '''
 import json, traceback, os, re
+
+from .i18n import i18n_init
+
+i18 = i18n_init('zh')
+
+_ = i18._
 
 # django引入包
 framework = None
@@ -16,13 +24,13 @@ for stack in stacks:
             framework = 'django'
             break
         except:
-            raise 'ApiFactory： django版本不兼容，推荐使用2.1版本，或者去修改JsonResponse, HttpResponse引入位置。'
+            raise _('django version error')
 if not framework:
     try:
         from flask import render_template_string,jsonify
         framework = 'flask'
     except:
-        raise 'ApiFactory：目前只兼容django和flask。'
+        raise _('not flask or django')
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -48,7 +56,7 @@ class Namespace(dict):
         try:
             return self[name]
         except KeyError:
-            raise AttributeError('没有找到属性：{}'.format(name))
+            raise AttributeError(_('no attributes found')+'{}'.format(name))
 
     def __setattr__(self, name, value):
         self[name] = value
@@ -63,13 +71,13 @@ def return_response(msg=None, status_code=400):
             return HttpResponse(msg, status=status_code)
         if framework == 'flask':
             return jsonify({'msg':msg}),status_code
-        raise '不支持的framework'
+        raise _('not flask or django')
     else:
         if framework == 'django':
             return JsonResponse({'status': status_code, 'message': msg})
         if framework == 'flask':
             return jsonify({'msg':msg}),status_code
-        raise '不支持的framework' 
+        raise _('not flask or django') 
 
 class Api():
     '''制作api接口的最终方法时，请继承本类，用法类似Flask-RESTful的Resource
@@ -103,9 +111,9 @@ class Api():
                 return JsonResponse(ret, status=status_code)
             if framework == 'flask':
                 return jsonify(ret),status_code
-            raise '不支持的framework'
+            raise _('not flask or django')
         else:
-            return return_response('没有这个 {} 方法。'.format(method))
+            return return_response(_('not found in conf')+ '{}'.format(method))
 
 
 class ApiShop():
@@ -131,13 +139,16 @@ class ApiShop():
             
         }
         '''
+        self.i18n = i18
+
         if not framework:
-            raise 'ApiFactory 不支持除了django和flask之外的其他框架！'
+            raise _('not flask or django')
 
         self.options = {
                 'base_url':'/api/', # 基础url，用以组合给前端的api url
                 'bad_request': True,  # 参数bad_request如果是真，发生错误返回一个坏请求给前端，否则都返回200的response，里面附带status=error和msg附带错误信息
-                'document': BASE_DIR + '/api_shop/static/document.html'  # 文档路由渲染的模板
+                'document': BASE_DIR + '/api_shop/static/document.html',  # 文档路由渲染的模板
+                'lang':'en',
                 
             }
         if options:
@@ -150,7 +161,14 @@ class ApiShop():
             
             self.document = doc_file.read()
         except:
-            self.document = '''<h1>没有找到文档模板</h1>'''
+            self.document = '<h1>' + _('document template not found') + '</h1>'
+
+        # 扩展语言包
+        if type(self.options.get('lang_pack'))==dict:
+            self.i18n.lang.update(self.options.get('lang_pack'))
+        
+        # 切换语言
+        self.i18n.lang_name = self.options.get('lang')
 
 
         global BAD_REQUEST
@@ -206,7 +224,7 @@ class ApiShop():
 
     def __not_find_url_function(self, request):
         # 如果是django
-        return JsonResponse({'status': 'error', 'msg': '没有这个接口'})
+        return JsonResponse({'status': 'error', 'msg': _('no such interface')})
 
     def __find_api_function(self, url):
         # 查找api所指向的模块
@@ -271,12 +289,12 @@ class ApiShop():
 
          # 检查必要值
         if required_ == True and not value and value!=0:
-            return '必要参数 {} 缺失'.format(name), None
+            return _('parameter')+' {} '.format(name)+_('is required'), None
 
         # 检查空值，这个时候因为有些空值还处于字符串形态，比如'[]'，所以有可能会被跳过        
         if not value and value != 0:
             if required_:
-                return '参数 {} 不能为空。'.format(name), None,
+                return _('parameter')+' {} '.format(name)+_('can not be empty'), None,
             else:
                 return None, value
             
@@ -290,12 +308,12 @@ class ApiShop():
                     # 其他类型或者类型转换器
                     value = type_(value)
             except:
-                return '参数 {} 必须是 {} '.format(name, type_), None
+                return _('parameter')+' {} '.format(name)+_('must be type')+' {} '.format(type_), None
 
         # 检查转换后的'',[],(),{}都放弃长度检查，0继续检查大小。
         if not value and value != 0:
             if required_:
-                return '参数 {} 不能为空。'.format(name), None,
+                return _('parameter')+' {} '.format(name)+_('can not be empty'), None,
             else:
                 return None, value
             
@@ -303,34 +321,34 @@ class ApiShop():
         if min_:
             if type_ in [str, list, dict, set]:
                 if len(value) < min_:
-                    return '参数 {} 的最小长度是 {} '.format(name, min_), None
+                    return _('parameter')+' {} '.format(name)+_('minimum length')+' {} '.format(min_), None
             elif type_ in [int, float, bool, complex]:
                 if value < min_:
-                    return '参数 {} 的最小值是 {} '.format(name, min_), None
+                    return _('parameter')+' {} '.format(name)+_('minimum value')+' {} '.format(min_), None
             else:
                 # 其他自定义类型
                 if value < type_(min_):
-                    return '参数 {} 的最小值是 {} '.format(name, min_), None
+                    return _('parameter')+' {} '.format(name)+_('minimum value')+' {} '.format(min_), None
 
         # 检查最大值/长度
         if max_:
             if type_ in [str, list, dict, set]:
                 if len(value) > max_:
-                    return '参数 {} 的最大长度是 {} '.format(name, max_), None
+                    return _('parameter')+' {} '.format(name)+_('maximum length')+' {} '.format(max_), None
             elif type_ in [int, float, bool, complex]:
                 if value > max_:
-                    return '参数 {} 的最大值是 {} '.format(name, max_), None
+                    return _('parameter')+' {} '.format(name)+_('maximum value')+' {} '.format(max_), None
             else:
                 # 其他自定义类型
                 if value > type_(max_):
-                    return '参数 {} 的最大值是 {} '.format(name, max_), None
+                    return _('parameter')+' {} '.format(name)+_('maximum value')+' {} '.format(max_), None
         
         return None, value
 
     def verify_parameter(self, request, par_conf):
         # 校验参数合法性，并转换成参数对象
         if type(par_conf) != list:
-            return '错误的api factory 配置项目，methons必须装的list容器内。', None
+            return _('The wrong configuration, methons must be loaded inside the list container.'), None
 
         parameter = self.get_parameter(request)
         adc = ApiDataClass()
@@ -356,7 +374,7 @@ class ApiShop():
             if errmsg:
                 return return_response(errmsg)
         else:
-            return return_response('没有这个接口method')
+            return return_response(_('no such interface method'))
    
         
         return model(request,data)
@@ -374,5 +392,3 @@ class ApiShop():
             return JsonResponse({'data': self.conf,'options':self.options})
         elif framework == 'flask':
             return jsonify({'data': self.conf,'options':self.options})
-        
- 
