@@ -5,7 +5,7 @@ api 工厂
 可以让用户用数据来配置api模块，并自动校验参数合法性和生成文档页面。
 by pcloth
 '''
-import json, traceback, os, re
+import json, traceback, os, re, time
 
 from .i18n import i18n_init
 
@@ -145,21 +145,24 @@ class ApiShop():
             raise _('not flask or django')
 
         self.options = {
+                'version':'1.6.1',
                 'base_url':'/api/', # 基础url，用以组合给前端的api url
                 'bad_request': True,  # 参数bad_request如果是真，发生错误返回一个坏请求给前端，否则都返回200的response，里面附带status=error和msg附带错误信息
                 'document': BASE_DIR + '/api_shop/static/document.html',  # 文档路由渲染的模板
                 'lang':'en',
                 
             }
+        self.document_version = ''
         if options:
             self.options.update(options)
         try:
             if self.options.get('document'):
-                doc_file = open(self.options.get('document'),mode='r',encoding='utf-8')
+                self.document_name = self.options.get('document')
             else:
-                doc_file = open(BASE_DIR + '/api_shop/static/document.html', mode='r', encoding='utf-8')
-            
-            self.document = doc_file.read()
+                self.document_name = BASE_DIR + '/api_shop/static/document.html'
+
+            self.document_version = time.ctime(os.stat(self.document_name).st_mtime)
+            self.document = open(self.document_name,mode='r',encoding='utf-8').read()
         except:
             self.document = '<h1>' + _('document template not found') + '</h1>'
 
@@ -223,8 +226,9 @@ class ApiShop():
         return conf
 
     def __not_find_url_function(self, request):
-        # 如果是django
-        return JsonResponse({'status': 'error', 'msg': _('no such interface')})
+        # 如果找不到业务模块
+        return return_response(_('no such interface'),400)
+
 
     def __find_api_function(self, url):
         # 查找api所指向的模块
@@ -381,6 +385,8 @@ class ApiShop():
 
     def render_documents(self,request,*url):
         '''渲染文档'''
+        if self.document_version != time.ctime(os.stat(self.document_name).st_mtime):
+            self.document = open(self.document_name,mode='r',encoding='utf-8').read()
         if framework == 'django':
             return HttpResponse(content=self.document, content_type=None, status=200, reason=None, charset=None)
         elif framework == 'flask':

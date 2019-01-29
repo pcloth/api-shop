@@ -15,9 +15,17 @@
 5. Container format conversion, data_format.datetime format conversion class; '2019-01-18 23:25:25' to datetime
 6. Custom Format Converter
 7. Multi-language support.
+8. Document support hot overload.
 
 
 ## **update record:**
+> 2019-01-29
+>
+> ver 1.6.1
+- Document support hot overload.
+- Document added version support
+- Optimization error tips
+
 > 2019-01-23
 >
 > ver 1.6.0

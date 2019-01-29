@@ -1,0 +1,8 @@
+MANIFEST.in
+README.rst
+setup.py
+api_shop/api_shop.egg-info/PKG-INFO
+api_shop/api_shop.egg-info/SOURCES.txt
+api_shop/api_shop.egg-info/dependency_links.txt
+api_shop/api_shop.egg-info/top_level.txt
+api_shop/static/document.html

@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='api-shop',
-    version='1.6.0',
+    version='1.6.1',
     description=(
         'RESTful api shop for django or flask'
     ),
@@ -15,7 +15,8 @@ setup(
     maintainer='pcloth',
     maintainer_email='pcloth@gmail.com',
     license='BSD License',
-    packages=find_packages(),
+    packages=find_packages('api_shop'),
+    package_dir = {'':'api_shop'},
     include_package_data=True,    # 启用清单文件MANIFEST.in
     exclude_package_date={'':['.gitignore']},
     platforms=["all"],

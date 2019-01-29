@@ -72,12 +72,14 @@
     <template>
         <el-container>
             <el-header style="line-height:1.5;">
-                <div>api-shop document</div>
-                <a href="https://github.com/pcloth/api-shop" target="_blank" title="查看api-shop文档"><span class="iconfont icon-github"></span></a>
+                <div>
+                    <h2>api-shop {{options.version}}</h2>
+                </div>
+                <a href="https://github.com/pcloth/api-shop" target="_blank" :title="_('View api-shop documentation')"><span class="iconfont icon-github"></span></a>
             </el-header>
             <el-container>
                 <el-aside width="300px">
-                    <h5>当前api数量: {{apiList.length}}</h5>
+                    <h5>{{_('api count')}}: {{apiList.length}}</h5>
                     <el-menu class="" default-active="-1">
                         <el-menu-item v-for="(api,index) in apiList" :index="index.toString()" :key="index" @click="viewDocument(api)">
                             <div>
@@ -94,80 +96,80 @@
                 <el-main>
                     <el-row>
                         <div class="flex-row">
-                            <div class="flex-row-title">Name</div>
+                            <div class="flex-row-title">{{_('Name')}}</div>
                             <div class="flex-row-content">
                                 <el-input readonly v-model="currentApi.name">
                                 </el-input>
                             </div>
                         </div>
                         <div class="flex-row">
-                            <div class="flex-row-title">API</div>
+                            <div class="flex-row-title">{{_('Url')}}</div>
                             <div class="flex-row-content">
                                 <el-input id="api-url" v-show="currentApi.url" :value="baseUrl+currentApi.url">
-                                    <el-button id="copy" slot="append"
-                                        :data-clipboard-text="baseUrl+currentApi.url">copy
+                                    <el-button id="copy" slot="append" :data-clipboard-text="baseUrl+currentApi.url">{{_('copy')}}
                                     </el-button>
                                 </el-input>
                             </div>
                         </div>
                         <div class="flex-row">
-                            <div class="flex-row-title">Api Document</div>
+                            <div class="flex-row-title">{{_('Main document')}}</div>
                             <div class="flex-row-content">
                                 <el-input readonly type="textarea" autosize v-model="currentApi.document">
                                 </el-input>
                             </div>
                         </div>
-                        
+
                         <template v-if="currentApi.methods">
                             <div v-for="(method,key) in currentApi.methods" :key="key">
                                 <div class="color-line"></div>
-                                <div class="flex-row" >
-                                    <div class="flex-row-title" >{{key}}</div>
+                                <div class="flex-row">
+                                    <div class="flex-row-title">{{key}}</div>
                                     <div class="flex-row-content">
                                         <div class="flex-row">
                                             <div class="flex-row-title" style="width:150px;">
                                                 <el-button type="primary" style="float: left;margin: 10px 0;" @click="mockTest(method,key)">
-                                                    {{`Mock Test ${key}`}}
+                                                    {{_('Mock Test')+` ${key}`}}
                                                 </el-button>
                                             </div>
                                             <div class="flex-row-content">
-                                                <div>{{key}} Method Document</div>
-                                                <el-input v-if="currentApi.methods_documents && currentApi.methods_documents[key]" readonly type="textarea" autosize v-model="currentApi.methods_documents[key]">
+                                                <div>{{key}} {{_('Method Document')}}</div>
+                                                <el-input v-if="currentApi.methods_documents && currentApi.methods_documents[key]"
+                                                    readonly type="textarea" autosize v-model="currentApi.methods_documents[key]">
                                                 </el-input>
-                                                <div v-else>-无-</div>
+                                                <div v-else>-{{_('None')}}-</div>
                                             </div>
                                         </div>
                                         <div class="flex-row">
-                                            <el-table :data="method" empty-text="无须参数" stripe style="height:auto;">
-                                                        <el-table-column prop="name" label="参数名">
-                                                        </el-table-column>
-                                                        <el-table-column prop="type" label="类型">
-                                                        </el-table-column>
-                                                        <el-table-column prop="required" label="必要" width="80">
-                                                            <template slot-scope="scope">
-                                                                <el-checkbox v-model="scope.row.required" style="pointer-events: none;"></el-checkbox>
-                                                            </template>
-                                                        </el-table-column>
-                                                        <el-table-column prop="min" label="最小值/长度" width="120">
-                                                        </el-table-column>
-                                                        <el-table-column prop="max" label="最大值/长度" width="120">
-                                                        </el-table-column>
-                                                        <el-table-column prop="value" label="测试值" width="100">
-                                                            <template slot-scope="scope">
-                                                                <el-input autosize v-model="scope.row.value">
-                                                                </el-input>
-                                                            </template>
-                                                        </el-table-column>
-                                                        <el-table-column prop="description" label="描述">
-                                                        </el-table-column>
-                                                    </el-table>
+                                            <el-table :data="method" :empty-text="_('No parameters required')" stripe style="height:auto;">
+                                                <el-table-column prop="name" :label="_('name')">
+                                                </el-table-column>
+                                                <el-table-column prop="type" :label="_('type')">
+                                                </el-table-column>
+                                                <el-table-column prop="required" :label="_('required')" width="100">
+                                                    <template slot-scope="scope">
+                                                        <el-checkbox v-model="scope.row.required" style="pointer-events: none;"></el-checkbox>
+                                                    </template>
+                                                </el-table-column>
+                                                <el-table-column prop="min" :label="_('minimum')" width="120">
+                                                </el-table-column>
+                                                <el-table-column prop="max" :label="_('maximum')" width="120">
+                                                </el-table-column>
+                                                <el-table-column prop="value" :label="_('test value')" width="100">
+                                                    <template slot-scope="scope">
+                                                        <el-input autosize v-model="scope.row.value">
+                                                        </el-input>
+                                                    </template>
+                                                </el-table-column>
+                                                <el-table-column prop="description" :label="_('description')">
+                                                </el-table-column>
+                                            </el-table>
                                         </div>
 
                                     </div>
                                 </div>
                             </div>
                         </template>
-               
+
                     </el-row>
                 </el-main>
             </el-container>
@@ -185,6 +187,46 @@
                 options: {},
                 testData: {},
                 baseUrl: '',
+                i18n: {
+                    zh: {
+                        'api count': '当前api数量',
+                        'View api-shop documentation': '查看api-shop文档',
+                        'Name': '接口名',
+                        'Url': '地址',
+                        'Main document': '主文档',
+                        'copy': '复制',
+                        'Method Document': '方法文档',
+                        'None': '无',
+                        'No parameters required': '无须参数',
+                        'name': '参数名',
+                        'type': '类型',
+                        'required': '必要',
+                        'minimum': '最小值/长度',
+                        'maximum': '最大值/长度',
+                        'test value': '测试值',
+                        'description': '描述',
+                        'Mock Test': '模拟测试',
+                    },
+                    en:{
+                        'api count': 'api count',
+                        'View api-shop documentation': 'View api-shop documentation',
+                        'Name': 'Name',
+                        'Url': 'Url',
+                        'Main document': 'Main document',
+                        'copy': 'copy',
+                        'Method Document': 'Method Document',
+                        'None': 'None',
+                        'No parameters required': 'No parameters required',
+                        'name': 'name',
+                        'type': 'type',
+                        'required': 'required',
+                        'minimum': 'minimum',
+                        'maximum': 'maximum',
+                        'test value': 'test value',
+                        'description': 'description',
+                        'Mock Test':'Mock Test',
+                    }
+                },
             }
         },
         computed: {
@@ -213,6 +255,10 @@
         },
 
         methods: {
+            _(text) {
+                let lang = this.options.lang?this.options.lang:'en'
+                return this.i18n[lang][text] ? this.i18n[lang][text] : text;
+            },
             getApi() {
                 this.ajax('get', `${this.baseUrl}api_data`)
                     .then((res) => {
@@ -256,9 +302,9 @@
                     if (!method[i].required) {
                         continue;
                     }
-                    if (method[i].value){
+                    if (method[i].value) {
                         mockConf[method[i].name] = method[i].value;
-                    }else{
+                    } else {
                         let min = method[i].min ? method[i].min : 1;
                         let max = method[i].max ? method[i].max : 20;
                         let length = this.getRandomInt(min, max);
@@ -268,7 +314,7 @@
                         if (method[i].type == 'int' || method[i].type == 'float') val = `${val}(${min},${max})`;
                         mockConf[method[i].name] = Mock.mock(val);
                     }
-                    
+
                 }
                 console.log('发送mock数据包', mockConf, key)
 

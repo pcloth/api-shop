@@ -4,6 +4,9 @@ from datetime import datetime as dt
 
 class datetime():
     '''将str转换成datetime格式'''
+    
+    def __repr__(self):
+        return "<class 'datetime'>"
 
     def __new__(self, string):
         if ':' in string:

@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, abort
 from jinja2 import TemplateNotFound
 import sys
 sys.path.insert(0, "D:\\codes\\api-shop")
-from tapi_shop import ApiShop, Api, data_format
+from api_shop import ApiShop, Api, data_format
 from flask import request
 
 simple_page = Blueprint('simple_page', __name__,
@@ -44,8 +44,10 @@ conf = [
                 {'name': 'ddd', 'type': data_format.datetime, 'required': False, 'min': '2018-01-01',
                     'max': '2019-01-01', 'description': '日期', 'default': '2018-05-05'},
             ],
-            'DELETE':[],
-            'GET':[]
+            'DELETE':[{'name': 'id', 'type': int, 'required': True,
+                    'min': 3, 'max': 24, 'description': '用户id'},],
+            # 'GET':[{'name': 'id', 'type': int, 'required': True,
+            #         'min': 3, 'max': 24, 'description': '用户id'},]
         }
     },
 
@@ -53,7 +55,7 @@ conf = [
 ]
 
 
-af = ApiShop(conf,{'document': 'd:\\codes\\api-shop\\flask_demo/tapi_shop/static/document.html'})
+af = ApiShop(conf,{'lang':'zh'})
 
 print(af.url_dict)
 
