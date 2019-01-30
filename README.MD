@@ -156,7 +156,7 @@ class datetime():
 
 ## 例子
 
-1. [Django例子](https://github.com/pcloth/api-shop/tree/master/django_demo)
+1. [Django例子]
 ```python
 ## urls.py
 from api_shop import ApiShop
@@ -222,7 +222,7 @@ class api_login(Api):
 
 
 
-2. [flask例子](https://github.com/pcloth/api-shop/tree/master/flask_demo)
+2. [flask例子]
 ```python
 from flask import Flask,request,render_template_string
 

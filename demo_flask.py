@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template_string
 
-from bule.views import simple_page
+from flask_demo.views import simple_page
 
 from werkzeug.routing import BaseConverter
 

@@ -1,0 +1,11 @@
+MANIFEST.in
+setup.py
+api_shop/__init__.py
+api_shop/api_shop.py
+api_shop/data_format.py
+api_shop/i18n.py
+api_shop.egg-info/PKG-INFO
+api_shop.egg-info/SOURCES.txt
+api_shop.egg-info/dependency_links.txt
+api_shop.egg-info/top_level.txt
+api_shop/static/document.html
