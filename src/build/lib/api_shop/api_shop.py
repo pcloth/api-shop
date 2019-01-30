@@ -8,6 +8,7 @@ by pcloth
 import json, traceback, os, re, time
 
 from .i18n import i18n_init
+from .__init__ import __version__
 
 i18 = i18n_init('zh')
 
@@ -145,7 +146,7 @@ class ApiShop():
             raise _('not flask or django')
 
         self.options = {
-                'version':'1.6.2',
+                'version':__version__,
                 'base_url':'/api/', # 基础url，用以组合给前端的api url
                 'bad_request': True,  # 参数bad_request如果是真，发生错误返回一个坏请求给前端，否则都返回200的response，里面附带status=error和msg附带错误信息
                 'document': BASE_DIR + '/api_shop/static/document.html',  # 文档路由渲染的模板
@@ -192,9 +193,19 @@ class ApiShop():
     def __class_to_json(self, methods):
         '''将python的dict数据对象类切换成字符串'''
         string = str(methods) #.__str__()
+        # 替换类名称
         class_list = re.compile(r"""<class '[\w|\.]*'>""",0).findall(string)
         for line in class_list:
             string = string.replace(line, "'{}'".format(line.split("'")[1]))
+
+        # 替换其他对象名称
+        others = re.compile(r'''<[\s|\S.]*>''', 0).findall(string)
+        for line in others:
+            try:
+                string = string.replace(line, "'{}'".format(line.split(" ")[1]))
+            except:
+                string = string.replace(line, "'{}'".format(line))
+            
 
         return eval(string)
 
@@ -285,11 +296,18 @@ class ApiShop():
         min_ = conf.get('min')
         max_ = conf.get('max')
         default_ = conf.get('default')
+        not_converting = False
 
 
         # 没有值得情况，包括'',[],()这种，但是要排除0，因为0经常用于标记值
         if not value and value!=0 and default_:
-            value = default_
+            # 默认值如果是一个函数，运行它，并不再检查类型转换
+            if callable(default_):
+                value = default_()
+                not_converting = True
+            else:
+                value = default_
+
 
          # 检查必要值
         if required_ == True and not value and value!=0:
@@ -303,7 +321,7 @@ class ApiShop():
                 return None, value
             
         # 检查并转换类型
-        if type_ and type(value) != type_:
+        if not_converting==False and type_ and type(value) != type_:
             try:
                 if type_ in [list, dict, set, tuple]:
                     # 容器类，json验证后转换

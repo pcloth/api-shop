@@ -12,13 +12,21 @@
 2. Automatically verify the data submitted by the request and convert it to a format.
 3. Automatically generate api documents and provide a web page for query and mock data presentation.
 4. Compatible with django and flask
-5. Container format conversion, data_format.datetime format conversion class; '2019-01-18 23:25:25' to datetime
-6. Custom Format Converter
+5. Container format conversion: list, dict, set, tuple
+6. Custom Format Converter, data_format.datetime format conversion class; '2019-01-18 23:25:25' to datetime
 7. Multi-language support.
 8. Document support hot overload.
+9. The default value supports method functions.
 
 
 ## **update record:**
+> 2019-01-30
+>
+> ver 1.6.2
+- Optimize project catalog
+- Shorten the format converter type name
+- The default value supports method functions, such as datetime.now. If it is a method function, it will no longer automatically compare types and conversions. You need to grasp the format yourself.
+
 > 2019-01-29
 >
 > ver 1.6.1
@@ -87,7 +95,7 @@ Key | Value Type | Description
 Name | str | parameter name, received in data.name
 Type | class | str, int, float, bool, list, dict, tuple, etc., also supports the data_format.datetime time format, you can also customize a type converter
 Required | bool | Is it necessary?
-Default | str | When not received, the default value, note that it will also be converted by the type converter specified by type.
+Default | str,function | When not received, the default value, note that it will also be converted by the type converter specified by type.When it is a function, if it does not receive the request parameter, it will automatically run this method to get the value, and will not perform type conversion.
 Min | int,str | The minimum/minimum length, which is a string, is converted by the type converter specified by type.
 Max | int,str | Maximum/maximum length, when a string is converted by the type converter specified by type.
 Description | str | Description of the function, to see the contents of the document for the front-end personnel

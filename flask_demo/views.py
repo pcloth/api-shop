@@ -31,7 +31,7 @@ conf = [
                 {'name': 'username', 'type': str, 'required': True,
                     'min': 3, 'max': 24, 'description': '用户名'},
                 {'name': 'ddd', 'type': data_format.datetime, 'required': False, 'min': '2018-01-01',
-                    'max': '2019-01-01', 'description': '日期', 'default': '2018-05-05'},
+                    'max': '2019-01-01', 'description': '日期', 'default': data_format.datetime.now},
             ],
             'DELETE': [{'name': 'id', 'type': int, 'required': True,
                         'min': 3, 'max': 24, 'description': '用户id'}, ],

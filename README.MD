@@ -14,13 +14,22 @@
 2. 自动校验request提交的数据，并转换成制定格式。
 3. 自动生成api文档，并提供一个web页面可供查询和mock数据演示。
 4. 兼容django 和 flask
-5. 容器格式转换，data_format.datetime格式转换类；'2019-01-18 23:25:25' to datetime
-6. 自定义格式转换器
+5. 容器格式转换：list，dict，set，tuple
+6. 自定义格式转换器，data_format.datetime格式转换类；'2019-01-18 23:25:25' to datetime
 7. 多国语言支持。
 8. 文档支持热重载。
+9. 默认值支持方法函数。
 
 
 ## **更新记录：**
+> 2019-01-30
+>
+> ver 1.6.2
+- 优化项目目录
+- 缩短格式转换器类型名称
+- 默认值支持方法函数，比如datetime.now，如果是方法函数，那么将不再自动比较类型和转换了，你需要自己把握好格式。
+
+
 > 2019-01-29
 >
 > ver 1.6.1
@@ -89,7 +98,7 @@ methods         | dict        | 接口所能接收的methods：有GET POST DELET
 name         | str        | 参数名，接收后在data.name
 type         | class        | str,int,float,bool,list,dict,tuple等等，也支持data_format.datetime时间格式，你也可以自定义一个类型转换器
 required         | bool        | 是否是必要值
-default         | str        | 当没有接收到时的默认值，注意，它也会被type所指定的类型转换器转换。
+default         | str,function        | 当没有接收到时的默认值，注意，它也会被type所指定的类型转换器转换。当它是一个function时，如果没有收到请求参数，将会自动运行这个方法获取值，同时将不再进行类型转换。
 min         | int,str        | 最小值/最小长度，为字符串时，会被type指定的类型转换器转换。
 max         | int,str        | 最大值/最大长度，为字符串时，会被type指定的类型转换器转换。
 description         | str        | 功能描述，给前端人员看文档的内容

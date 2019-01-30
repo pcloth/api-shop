@@ -47,6 +47,7 @@
         background-color: #E9EEF3;
         color: #333;
         text-align: center;
+        padding: 10px;
     }
     .flex-row {
         display: flex;
@@ -67,6 +68,12 @@
     .el-table__empty-block {
         height:auto;
     }
+
+    .color-line {
+        height: 5px;
+        background-color: #B3C0D1;
+    }
+    
 </style>
 <div id="app">
     <template>
@@ -75,7 +82,8 @@
                 <div>
                     <h2>api-shop {{options.version}}</h2>
                 </div>
-                <a href="https://github.com/pcloth/api-shop" target="_blank" :title="_('View api-shop documentation')"><span class="iconfont icon-github"></span></a>
+                <a href="https://github.com/pcloth/api-shop" target="_blank" :title="_('View api-shop documentation')"><span
+                        class="iconfont icon-github"></span></a>
             </el-header>
             <el-container>
                 <el-aside width="300px">
@@ -140,15 +148,18 @@
                                             </div>
                                         </div>
                                         <div class="flex-row">
-                                            <el-table :data="method" :empty-text="_('No parameters required')" stripe style="height:auto;">
+                                            <el-table :data="method" :empty-text="_('No parameters required')" stripe
+                                                style="height:auto;">
                                                 <el-table-column prop="name" :label="_('name')">
                                                 </el-table-column>
                                                 <el-table-column prop="type" :label="_('type')">
                                                 </el-table-column>
-                                                <el-table-column prop="required" :label="_('required')" width="100">
+                                                <el-table-column prop="required" :label="_('required')">
                                                     <template slot-scope="scope">
                                                         <el-checkbox v-model="scope.row.required" style="pointer-events: none;"></el-checkbox>
                                                     </template>
+                                                </el-table-column>
+                                                <el-table-column prop="default" :label="_('default')">
                                                 </el-table-column>
                                                 <el-table-column prop="min" :label="_('minimum')" width="120">
                                                 </el-table-column>
@@ -156,8 +167,7 @@
                                                 </el-table-column>
                                                 <el-table-column prop="value" :label="_('test value')" width="100">
                                                     <template slot-scope="scope">
-                                                        <el-input autosize v-model="scope.row.value">
-                                                        </el-input>
+                                                        <el-input v-model="scope.row.value"></el-input>
                                                     </template>
                                                 </el-table-column>
                                                 <el-table-column prop="description" :label="_('description')">
@@ -206,8 +216,9 @@
                         'test value': '测试值',
                         'description': '描述',
                         'Mock Test': '模拟测试',
+                        'default':'默认值',
                     },
-                    en:{
+                    en: {
                         'api count': 'api count',
                         'View api-shop documentation': 'View api-shop documentation',
                         'Name': 'Name',
@@ -224,7 +235,8 @@
                         'maximum': 'maximum',
                         'test value': 'test value',
                         'description': 'description',
-                        'Mock Test':'Mock Test',
+                        'Mock Test': 'Mock Test',
+                        'default':'default',
                     }
                 },
             }
@@ -256,7 +268,7 @@
 
         methods: {
             _(text) {
-                let lang = this.options.lang?this.options.lang:'en'
+                let lang = this.options.lang ? this.options.lang : 'en'
                 return this.i18n[lang][text] ? this.i18n[lang][text] : text;
             },
             getApi() {
@@ -299,11 +311,11 @@
                 }
                 let mockConf = {}
                 for (let i in method) {
-                    if (!method[i].required) {
-                        continue;
-                    }
+
                     if (method[i].value) {
                         mockConf[method[i].name] = method[i].value;
+                    } else if (!method[i].required) {
+                        continue;
                     } else {
                         let min = method[i].min ? method[i].min : 1;
                         let max = method[i].max ? method[i].max : 20;

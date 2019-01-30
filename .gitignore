@@ -2,5 +2,6 @@
 .idea/*
 .vscode/
 dist/
+build/
 *.pyc
 __pycache__/

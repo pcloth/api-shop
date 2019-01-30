@@ -4,10 +4,10 @@
 from setuptools import setup, find_packages
 import re, ast
 
-desc = open('../README.rst', encoding='utf-8').read()
+desc = open('README.rst', encoding='utf-8').read()
 _version_re = re.compile(r'__version__\s+=\s+(.*)')
 
-with open('weixin/__init__.py', 'rb') as f:
+with open('api_shop/__init__.py', 'rb') as f:
     version = str(ast.literal_eval(_version_re.search(
         f.read().decode('utf-8')
     ).group(1)))
