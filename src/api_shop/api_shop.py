@@ -298,16 +298,14 @@ class ApiShop():
         default_ = conf.get('default')
         not_converting = False
 
-
         # 没有值得情况，包括'',[],()这种，但是要排除0，因为0经常用于标记值
-        if not value and value!=0 and default_:
+        if not value and value != 0 and not default_ is None:
             # 默认值如果是一个函数，运行它，并不再检查类型转换
             if callable(default_):
                 value = default_()
                 not_converting = True
             else:
                 value = default_
-
 
          # 检查必要值
         if required_ == True and not value and value!=0:

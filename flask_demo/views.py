@@ -33,8 +33,8 @@ conf = [
                 {'name': 'ddd', 'type': data_format.datetime, 'required': False, 'min': '2018-01-01',
                     'max': '2019-01-01', 'description': '日期', 'default': data_format.datetime.now},
             ],
-            'DELETE': [{'name': 'id', 'type': int, 'required': True,
-                        'min': 3, 'max': 24, 'description': '用户id'}, ],
+            'DELETE': [{'name': 'id', 'type': int, 'default':0,
+                        'min': 0, 'max': 24, 'description': '用户id'}, ],
             # 'GET':[{'name': 'id', 'type': int, 'required': True,
             #         'min': 3, 'max': 24, 'description': '用户id'},]
         }

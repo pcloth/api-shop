@@ -20,6 +20,12 @@
 
 
 ## **update record:**
+> 2019-02-11
+>
+> ver 1.6.4
+- Fixed a problem where the default value is int:0 and does not trigger.
+
+
 > 2019-01-30
 >
 > ver 1.6.2
