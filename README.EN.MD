@@ -47,12 +47,12 @@
 ## **Usage: **
 1. Installation:
 ```sh
-Sudo pip install api-shop
+sudo pip install api-shop
 ```
 
 2. Introduce:
 ```python
-From api_shop from ApiShop, Api, data_format
+from api_shop from ApiShop, Api, data_format
 ```
 
 Module Name | Function Description | Module Introduction
@@ -63,7 +63,7 @@ Api | Business Inheritance Class | Used to inherit the actual business code afte
 
 3. Initialization
 ``` python
-Conf = [
+conf = [
     {
         'url': 'login',
         'class': 'account.views.api_login',
@@ -83,26 +83,26 @@ Conf = [
 >
 Key | Value Type | Description
 :----------- | :----------- | -----------:
-Url | str | url address of the interface, only need to fill in the relative address
-Class | str,class | The business class that the interface actually calls (inherited to Api), which can be an object or a reference address
-Name | str | the name of the interface
+url | str | url address of the interface, only need to fill in the relative address
+class | str,class | The business class that the interface actually calls (inherited to Api), which can be an object or a reference address
+name | str | the name of the interface
 Methods | dict | methods that the interface can receive: GET POST DELETE PUT PATCH
 
 > methods configuration instructions
 >
 Key | Value Type | Description
 :----------- | :----------- | -----------:
-Name | str | parameter name, received in data.name
-Type | class | str, int, float, bool, list, dict, tuple, etc., also supports the data_format.datetime time format, you can also customize a type converter
-Required | bool | Is it necessary?
-Default | str,function | When not received, the default value, note that it will also be converted by the type converter specified by type.When it is a function, if it does not receive the request parameter, it will automatically run this method to get the value, and will not perform type conversion.
-Min | int,str | The minimum/minimum length, which is a string, is converted by the type converter specified by type.
-Max | int,str | Maximum/maximum length, when a string is converted by the type converter specified by type.
-Description | str | Description of the function, to see the contents of the document for the front-end personnel
+name | str | parameter name, received in data.name
+type | class | str, int, float, bool, list, dict, tuple, etc., also supports the data_format.datetime time format, you can also customize a type converter
+required | bool | Is it necessary?
+default | str,function | When not received, the default value, note that it will also be converted by the type converter specified by type.When it is a function, if it does not receive the request parameter, it will automatically run this method to get the value, and will not perform type conversion.
+min | int,str | The minimum/minimum length, which is a string, is converted by the type converter specified by type.
+max | int,str | Maximum/maximum length, when a string is converted by the type converter specified by type.
+description | str | Description of the function, to see the contents of the document for the front-end personnel
 
 4. Configuration
 ```python
-Options = {
+options = {
                 'base_url': '/api/',
                 'bad_request': True,
                 'document': BASE_DIR + '/api_shop/static/document.html',
@@ -115,11 +115,11 @@ Options = {
 
 Key | Type | default | Description
 :----------- | :----------- | :----------- | -----------:
-Base_url | str | /api/ | interface url prefix
-Bad_request | bool | True | If the request is not valid, return it as a bad request; otherwise it is all 200 return
-Document | str(path) |  | The path to the html template of the document page, there will be a simple template by default
-Lang | str | en | Multi-language support, currently built in en, zh
-Lang_pack | dict | None | Extended language pack if you want api-shop to support more languages
+base_url | str | /api/ | interface url prefix
+bad_request | bool | True | If the request is not valid, return it as a bad request; otherwise it is all 200 return
+document | str(path) |  | The path to the html template of the document page, there will be a simple template by default
+lang | str | en | Multi-language support, currently built in en, zh
+lang_pack | dict | None | Extended language pack if you want api-shop to support more languages
 
 > lang_pack language pack
 >
@@ -147,17 +147,17 @@ Lang_pack | dict | None | Extended language pack if you want api-shop to support
 }
 ```
 
-Custom format converter
+custom format converter
 ```python
 # When using a custom format converter, min and max will also automatically load this converter for comparison.
-From datetime import datetime as dt
-Class datetime():
+from datetime import datetime as dt
+class datetime():
     '''Converts str to datetime format '''
-    Def __new__(self, string):
-        If ':' in string:
-            Return dt.strptime(string, '%Y-%m-%d %H:%M:%S')
-        Else:
-            Return dt.strptime(string, '%Y-%m-%d')
+    def __new__(self, string):
+        if ':' in string:
+            return dt.strptime(string, '%Y-%m-%d %H:%M:%S')
+        else:
+            return dt.strptime(string, '%Y-%m-%d')
 ```
 
 ## example
@@ -165,10 +165,10 @@ Class datetime():
 1. [Django example] 
 ```python
 ## urls.py
-From api_shop import ApiShop
+from api_shop import ApiShop
 
 ## Interface Configuration Data
-Conf = [
+conf = [
     {
         'url': 'login',
         'class': 'account.views.api_login', # need to introduce the api class, inherited from the above API interface class
@@ -187,21 +187,21 @@ Conf = [
 
 ## api-shop parameter settings:
 
-Options = {
+options = {
             'base_url': '/api/', #base url, used to combine the front end api url can be default
             # 'document':BASE_DIR+'/api_shop/static/document.html', #Document routing rendering template Default
             'bad_request': True, # parameter bad_request If true, an error is returned to the front end, otherwise it returns a response of 200, which is accompanied by status=error and msg with error message.
         }
 
 
-Ap = ApiShop(conf,options)
+ap = ApiShop(conf,options)
 
-App_name='api'
+app_name='api'
 
-Urlpatterns = [
-    Path('api_data', ap.get_api_data, name='api_data'), # api document required interface
-    Path('document/', ap.render_documents, name='document'), #apidocument rendered route
-    Re_path(r'([\s\S]*)', ap.api_entry, name='index') # Take over all other routes from api/ below to api_entry entry method
+urlpatterns = [
+    path('api_data', ap.get_api_data, name='api_data'), # api document required interface
+    path('document/', ap.render_documents, name='document'), #apidocument rendered route
+    re_path(r'([\s\S]*)', ap.api_entry, name='index') # Take over all other routes from api/ below to api_entry entry method
 ]
 
 ```
@@ -209,42 +209,42 @@ Urlpatterns = [
 ###
 ```python
 ## account/views.py
-From api_shop from Api
+from api_shop from Api
 
-Class api_login(Api):
-    Def post(self,request,data=None):
+class api_login(Api):
+    def post(self,request,data=None):
         '''api login interface, convenient WeChat user binding account '''
-        Username = data.username
-        Password = data.password
-        User = authenticate(username=username, password=password)
-        If user:
-            Login(request, user)
-            Token = TokenBackend.make_token(user).decode('utf-8')
-            Return JsonResponse({'status': 'success', 'msg': 'execution success', 'token': token})
+        username = data.username
+        password = data.password
+        user = authenticate(username=username, password=password)
+        if user:
+            login(request, user)
+            token = TokenBackend.make_token(user).decode('utf-8')
+            return JsonResponse({'status': 'success', 'msg': 'execution success', 'token': token})
         
-        Return JsonResponse({'status': 'error', 'msg': 'User login failed'})
+        return JsonResponse({'status': 'error', 'msg': 'User login failed'})
 ```
 
 
 
 2. [flask example] 
 ```python
-From flask import Flask,request,render_template_string
+from flask import Flask,request,render_template_string
 
-From werkzeug.routing import BaseConverter
+from werkzeug.routing import BaseConverter
 
-From api_shop import ApiShop,Api
+from api_shop import ApiShop,Api
 
-Class RegexConverter(BaseConverter):
-    Def __init__(self, map, *args):
-        Self.map = map
-        Self.regex = args[0]
+class RegexConverter(BaseConverter):
+    def __init__(self, map, *args):
+        self.map = map
+        self.regex = args[0]
 
-App = Flask(__name__)
+app = Flask(__name__)
 # If using a blueprint, adding a regular processor must be used before registering the blueprint.
-App.url_map.converters['regex'] = RegexConverter
+app.url_map.converters['regex'] = RegexConverter
 
-Conf = [
+conf = [
     {
         'url': 'login',
         'class': 'api.views.api_login',
@@ -275,18 +275,18 @@ Conf = [
 
 ]
 
-Af = ApiShop(conf)
+af = ApiShop(conf)
 
 @app.route('/api/<regex("([\s\S]*)"):url>',methods=['GET', 'POST','PUT','DELETE','PATCH '])
-Def hello_world(url):
-    Print(url)
-    If url=='document/':
-        Return af.render_documents(request,url)
-    If url=='api_data':
-        Return af.get_api_data(request,url)
+def hello_world(url):
+    print(url)
+    if url=='document/':
+        return af.render_documents(request,url)
+    if url=='api_data':
+        return af.get_api_data(request,url)
 
-    Return af.api_entry(request,url)
+    return af.api_entry(request,url)
 
-If __name__ == '__main__':
-    App.run(host="0.0.0.0",debug=True)
+if __name__ == '__main__':
+    app.run(host="0.0.0.0",debug=True)
 ```
