@@ -229,9 +229,9 @@ class api_login(Api):
         if user:
             login(request, user)
             token = TokenBackend.make_token(user).decode('utf-8')
-            return JsonResponse({'status': 'success', 'msg': '执行成功', 'token': token})
+            return {'status': 'success', 'msg': '执行成功', 'token': token}
         
-        return JsonResponse({'status': 'error', 'msg': '用户登录失败'})
+        return {'status': 'error', 'msg': '用户登录失败'},400
 ```
 
 
