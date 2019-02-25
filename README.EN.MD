@@ -12,7 +12,7 @@
 2. Automatically verify the data submitted by the request and convert it to a format.
 3. Automatically generate api documents and provide a web page for query and mock data presentation.
 4. Compatible with django and flask
-5. Container format conversion: list, dict, set, tuple
+5. Container format conversion: int, float, list, dict, set, tuple, bool
 6. Custom Format Converter, data_format.datetime format conversion class; '2019-01-18 23:25:25' to datetime
 7. Multi-language support.
 8. Document support hot overload.
@@ -20,6 +20,14 @@
 
 
 ## **update record:**
+> 2019-02-25
+>
+> ver 1.6.5
+- Add empty Response support, Api method can not return any value
+- Added support for bool parameter types
+- Interface documentation supports filtering (options are required)
+
+
 > 2019-02-11
 >
 > ver 1.6.4
@@ -126,6 +134,8 @@ bad_request | bool | True | If the request is not valid, return it as a bad requ
 document | str(path) |  | The path to the html template of the document page, there will be a simple template by default
 lang | str | en | Multi-language support, currently built in en, zh
 lang_pack | dict | None | Extended language pack if you want api-shop to support more languages
+name_classification | list | none | used for default document templates to filter interface names for easy searching
+url_classification | list | None | Used by the default document template to filter the interface url for easy searching. Example: 'url_classification':['weixin', 'login']
 
 > lang_pack language pack
 >

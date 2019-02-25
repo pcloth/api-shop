@@ -10,9 +10,9 @@ simple_page = Blueprint('simple_page', __name__,
 
 conf = [
     {
-        'url': 'login',
+        'url': 'weixin/login',
         'class': 'business_code.views.api_login',
-        'name': '账户登录',
+        'name': '微信账户登录',
         'methods': {
             'POST': [
                 {'name': 'username', 'type': str, 'required': True,
@@ -23,7 +23,7 @@ conf = [
         }
     },
     {
-        'url': 'test',
+        'url': 'weixin/test',
         'class': 'business_code.views.test',
         'name': '账户登录',
         'methods': {
@@ -33,8 +33,8 @@ conf = [
                 {'name': 'ddd', 'type': data_format.datetime, 'required': False, 'min': '2018-01-01',
                     'max': '2019-01-01', 'description': '日期', 'default': data_format.datetime.now},
             ],
-            'DELETE': [{'name': 'id', 'type': int, 'default':0,
-                        'min': 0, 'max': 24, 'description': '用户id'}, ],
+            'DELETE': [{'name': 'id', 'type': bool, 'min':1,'required': True,
+                         'description': '用户id'}, ],
             # 'GET':[{'name': 'id', 'type': int, 'required': True,
             #         'min': 3, 'max': 24, 'description': '用户id'},]
         }
@@ -44,7 +44,7 @@ conf = [
 ]
 
 
-af = ApiShop(conf, {'lang': 'zh'})
+af = ApiShop(conf, {'lang': 'zh','name_classification':['微信','账户'],'url_classification':['weixin','login']})
 
 
 @simple_page.route('/api/<regex("([\s\S]*)"):url>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])

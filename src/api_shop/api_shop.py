@@ -103,15 +103,25 @@ class Api():
             func = getattr(self,method)
             retdata = func(self,request,data)
             status_code = 200
-            if type(retdata)==tuple and len(retdata)==2:
+            if type(retdata)==tuple:
                 ret = retdata[0]
-                status_code = retdata[1]
+                status_code = retdata[1] or 200
             else:
-                ret =retdata
-            if framework == 'django':
-                return JsonResponse(ret, status=status_code)
-            if framework == 'flask':
-                return jsonify(ret),status_code
+                ret = retdata
+            
+            # 允许返回空body
+            if ret == None:
+                ret = ''
+            if type(ret)==dict:
+                if framework == 'django':
+                    return JsonResponse(ret, status=status_code)
+                if framework == 'flask':
+                    return jsonify(ret), status_code
+            else:
+                if framework == 'django':
+                    return HttpResponse(ret, status=status_code)
+                if framework == 'flask':
+                    return ret, status_code
             raise _('not flask or django')
         else:
             return return_response(_('not found in conf')+ '{}'.format(method))
@@ -324,6 +334,11 @@ class ApiShop():
                 if type_ in [list, dict, set, tuple]:
                     # 容器类，json验证后转换
                     value = type_(json.loads(value))
+                elif type_ == bool:
+                    if value == 'true':
+                        value = True
+                    else:
+                        value = False
                 else:
                     # 其他类型或者类型转换器
                     value = type_(value)
@@ -342,7 +357,7 @@ class ApiShop():
             if type_ in [str, list, dict, set]:
                 if len(value) < min_:
                     return _('parameter')+' {} '.format(name)+_('minimum length')+' {} '.format(min_), None
-            elif type_ in [int, float, bool, complex]:
+            elif type_ in [int, float, complex]:
                 if value < min_:
                     return _('parameter')+' {} '.format(name)+_('minimum value')+' {} '.format(min_), None
             else:
@@ -396,8 +411,9 @@ class ApiShop():
         else:
             return return_response(_('no such interface method'))
    
-        
-        return model(request,data)
+        ret = model(request, data)
+
+        return ret
 
     def render_documents(self,request,*url):
         '''渲染文档'''
