@@ -49,31 +49,35 @@
         text-align: center;
         padding: 10px;
     }
+    
     .flex-row {
         display: flex;
         align-items: center;
         margin: 20px 0;
     }
+    
     .flex-row:hover {
         background-color: #f5f7fa;
     }
+    
     .flex-row-title {
         width: 100px;
         text-align: left;
     }
+    
     .flex-row-content {
-        flex:1;
+        flex: 1;
         margin-left: 20px;
     }
+    
     .el-table__empty-block {
-        height:auto;
+        height: auto;
     }
-
+    
     .color-line {
         height: 5px;
         background-color: #B3C0D1;
     }
-    
 </style>
 <div id="app">
     <template>
@@ -88,18 +92,18 @@
             <el-container>
                 <el-aside width="300px">
                     <h5>{{_('api count')}}: {{apiList.length}}</h5>
-                    <el-menu class="" default-active="-1">
-                        <el-menu-item v-for="(api,index) in apiList" :index="index.toString()" :key="index" @click="viewDocument(api)">
-                            <div>
-                                <div style="float:left;">
-                                    {{api.name}}
-                                </div>
-                                <div style="float:right;">
-                                    {{api.url}}
-                                </div>
-                            </div>
-                        </el-menu-item>
-                    </el-menu>
+                    <el-table highlight-current-row  :data="apiList" style="width: 100%"
+                    
+                    @current-change="viewDocument">
+                        <el-table-column sortable prop="name" :label="_('Name')" 
+                        :filters="name_type"
+                        :filter-method="filterName">
+                        </el-table-column>
+                        <el-table-column sortable prop="url" :label="_('Url')"
+                        :filters="url_type"
+                        :filter-method="filterUrl">
+                        </el-table-column>
+                    </el-table>
                 </el-aside>
                 <el-main>
                     <el-row>
@@ -158,34 +162,34 @@
                                                     <template slot-scope="scope">
                                                         <el-checkbox v-model="scope.row.required" style="pointer-events: none;"></el-checkbox>
                                                     </template>
-                                                </el-table-column>
-                                                <el-table-column prop="default" :label="_('default')">
-                                                </el-table-column>
-                                                <el-table-column prop="min" :label="_('minimum')" width="120">
-                                                </el-table-column>
-                                                <el-table-column prop="max" :label="_('maximum')" width="120">
-                                                </el-table-column>
-                                                <el-table-column prop="value" :label="_('test value')" width="100">
-                                                    <template slot-scope="scope">
+    </el-table-column>
+    <el-table-column prop="default" :label="_('default')">
+    </el-table-column>
+    <el-table-column prop="min" :label="_('minimum')" width="120">
+    </el-table-column>
+    <el-table-column prop="max" :label="_('maximum')" width="120">
+    </el-table-column>
+    <el-table-column prop="value" :label="_('test value')" width="100">
+        <template slot-scope="scope">
                                                         <el-input v-model="scope.row.value"></el-input>
                                                     </template>
-                                                </el-table-column>
-                                                <el-table-column prop="description" :label="_('description')">
-                                                </el-table-column>
-                                            </el-table>
-                                        </div>
+    </el-table-column>
+    <el-table-column prop="description" :label="_('description')">
+    </el-table-column>
+    </el-table>
+</div>
 
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
+</div>
+</div>
+</div>
+</template>
 
-                    </el-row>
-                </el-main>
-            </el-container>
-            <el-footer> writed by pcloth@gmail.com</el-footer>
-        </el-container>
-    </template>
+</el-row>
+</el-main>
+</el-container>
+<el-footer> writed by pcloth@gmail.com</el-footer>
+</el-container>
+</template>
 </div>
 <script>
     var Main = {
@@ -197,6 +201,8 @@
                 options: {},
                 testData: {},
                 baseUrl: '',
+                name_type:[],
+                url_type:[],
                 i18n: {
                     zh: {
                         'api count': '当前api数量',
@@ -216,7 +222,7 @@
                         'test value': '测试值',
                         'description': '描述',
                         'Mock Test': '模拟测试',
-                        'default':'默认值',
+                        'default': '默认值',
                     },
                     en: {
                         'api count': 'api count',
@@ -236,14 +242,14 @@
                         'test value': 'test value',
                         'description': 'description',
                         'Mock Test': 'Mock Test',
-                        'default':'default',
+                        'default': 'default',
                     }
                 },
             }
         },
         computed: {
             // 计算属性的 getter
-            testString: function () {
+            testString: function() {
                 // `this` 指向 vm 实例
                 return JSON.stringify(this.testData);
             }
@@ -256,7 +262,7 @@
         mounted() {
             var clipboard = new ClipboardJS('#copy');
             let that = this;
-            clipboard.on('success', function (e) {
+            clipboard.on('success', function(e) {
                 that.$notify({
                     title: '成功',
                     message: `已经将 ${e.text} 复制到粘贴板。`,
@@ -277,12 +283,29 @@
                         this.apiList = res.data.data;
                         this.options = res.data.options;
 
+                        if (this.options.name_classification) this.make_filter_data('name_type',this.options.name_classification);
+                        if (this.options.url_classification) this.make_filter_data('url_type',this.options.url_classification);
                     })
                     .catch((error) => {
                         console.log('error', error);
                     });
 
 
+            },
+            make_filter_data(obj,data){
+                this[obj] = [];
+                for(let i in data){
+                    this[obj].push({
+                    text:data[i],
+                    value:data[i]
+                    })
+                }
+            },
+            filterName(value, row) {
+                return row.name.indexOf(value)>=0;
+            },
+            filterUrl(value, row) {
+                return row.url.indexOf(value)>=0;
             },
             viewDocument(api) {
                 this.$set(this, 'currentApi', api);
