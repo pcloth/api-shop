@@ -17,9 +17,30 @@
 7. Multi-language support.
 8. Document support hot overload.
 9. The default value supports method functions.
+10. Support url contains parameters, such as ```/api/user/<id>```, and set its rules when configuring the parameters parameter.
 
 
 ## **update record:**
+> 2019-03-06
+>
+> ver 1.6.6
+- Add url parameter support
+- E.g:
+```python
+Conf = [{
+         'url': 'weixin/<name>/<id>',
+         'class': 'business_code.views.test',
+         'name': 'test api',
+         'methods': {
+            
+             'POST': [
+                 {'name': 'id', 'type': int, 'required': True, 'description': 'user id'},
+                 {'name': 'name', 'type': str, 'min':4,'required': True,'description': 'username'},
+             ],
+         }
+     },]
+```
+
 > 2019-02-25
 >
 > ver 1.6.5

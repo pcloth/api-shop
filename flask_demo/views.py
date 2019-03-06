@@ -17,26 +17,21 @@ conf = [
             'POST': [
                 {'name': 'username', 'type': str, 'required': True,
                     'min': 3, 'max': 24, 'description': '用户名'},
-                {'name': 'ddd', 'type': str,  'min': 20,
-                    'max': 6, 'description': '日期'},
+                {'name': 'ddd', 'type': str,   'description': '日期'},
             ]
         }
     },
     {
-        'url': 'weixin/test',
+        'url': 'weixin/<name>/<id>',
         'class': 'business_code.views.test',
         'name': '账户登录',
         'methods': {
-            'POST': [
-                {'name': 'username', 'type': str, 'required': True,
-                    'min': 3, 'max': 24, 'description': '用户名'},
-                {'name': 'ddd', 'type': data_format.datetime, 'required': False, 'min': '2018-01-01',
-                    'max': '2019-01-01', 'description': '日期', 'default': data_format.datetime.now},
-            ],
-            'DELETE': [{'name': 'id', 'type': bool, 'min':1,'required': True,
-                         'description': '用户id'}, ],
-            # 'GET':[{'name': 'id', 'type': int, 'required': True,
-            #         'min': 3, 'max': 24, 'description': '用户id'},]
+            
+            'POST': [{'name': 'id', 'type': bool, 'required': True,
+                         'description': '用户id'},
+                         {'name': 'name', 'type': str, 'min':4,'required': True,
+                         'description': '用户name'}, 
+                    ],
         }
     },
 

@@ -37,7 +37,7 @@ class i18n_init():
             'maximum length': '最大长度',
             'maximum value': '最大值',
             'The wrong configuration, methons must be loaded inside the list container.': '错误的配置，methons必须装的list容器内。',
-            'no such interface method': '没有这个接口method',
+            'no such interface method': '这个接口没有这个method',
 
         }
     }

@@ -19,9 +19,32 @@
 7. 多国语言支持。
 8. 文档支持热重载。
 9. 默认值支持方法函数。
+10. 支持url中包含参数，例如 ```/api/user/<id>```，并且在配置methods参数的时候设置它的规则。
 
 
 ## **更新记录：**
+> 2019-03-06
+>
+> ver 1.6.6
+- 添加url参数支持
+- 例如：
+```python
+conf = [{
+        'url': 'weixin/<name>/<id>',
+        'class': 'business_code.views.test',
+        'name': 'test api',
+        'methods': {
+            
+            'POST': [
+                {'name': 'id', 'type': int, 'required': True, 'description': '用户id'},
+                {'name': 'name', 'type': str, 'min':4,'required': True,'description': '用户name'}, 
+            ],
+        }
+    },]
+```
+
+
+
 > 2019-02-25
 >
 > ver 1.6.5

@@ -92,7 +92,7 @@
             <el-container>
                 <el-aside width="300px">
                     <h5>{{_('api count')}}: {{apiList.length}}</h5>
-                    <el-table highlight-current-row  :data="apiList" style="width: 100%"
+                    <el-table highlight-current-row ref="type"  :data="apiList" style="width: 100%"
                     
                     @current-change="viewDocument">
                         <el-table-column sortable prop="name" :label="_('Name')" 
@@ -169,7 +169,7 @@
     </el-table-column>
     <el-table-column prop="max" :label="_('maximum')" width="120">
     </el-table-column>
-    <el-table-column prop="value" :label="_('test value')" width="100">
+    <el-table-column fixed prop="value" :label="_('test value')" width="100">
         <template slot-scope="scope">
                                                         <el-input v-model="scope.row.value"></el-input>
                                                     </template>
@@ -193,198 +193,211 @@
 </div>
 <script>
     var Main = {
-        data() {
-            return {
-                // apiCount: 100,
-                apiList: [],
-                currentApi: {},
-                options: {},
-                testData: {},
-                baseUrl: '',
-                name_type:[],
-                url_type:[],
-                i18n: {
-                    zh: {
-                        'api count': '当前api数量',
-                        'View api-shop documentation': '查看api-shop文档',
-                        'Name': '接口名',
-                        'Url': '地址',
-                        'Main document': '主文档',
-                        'copy': '复制',
-                        'Method Document': '方法文档',
-                        'None': '无',
-                        'No parameters required': '无须参数',
-                        'name': '参数名',
-                        'type': '类型',
-                        'required': '必要',
-                        'minimum': '最小值/长度',
-                        'maximum': '最大值/长度',
-                        'test value': '测试值',
-                        'description': '描述',
-                        'Mock Test': '模拟测试',
-                        'default': '默认值',
+            data() {
+                return {
+                    // apiCount: 100,
+                    apiList: [],
+                    currentApi: {},
+                    options: {},
+                    testData: {},
+                    baseUrl: '',
+                    name_type: [],
+                    url_type: [],
+                    i18n: {
+                        zh: {
+                            'api count': '当前api数量',
+                            'View api-shop documentation': '查看api-shop文档',
+                            'Name': '接口名',
+                            'Url': '地址',
+                            'Main document': '主文档',
+                            'copy': '复制',
+                            'Method Document': '方法文档',
+                            'None': '无',
+                            'No parameters required': '无须参数',
+                            'name': '参数名',
+                            'type': '类型',
+                            'required': '必要',
+                            'minimum': '最小值/长度',
+                            'maximum': '最大值/长度',
+                            'test value': '测试值',
+                            'description': '描述',
+                            'Mock Test': '模拟测试',
+                            'default': '默认值',
+                        },
+                        en: {
+                            'api count': 'api count',
+                            'View api-shop documentation': 'View api-shop documentation',
+                            'Name': 'Name',
+                            'Url': 'Url',
+                            'Main document': 'Main document',
+                            'copy': 'copy',
+                            'Method Document': 'Method Document',
+                            'None': 'None',
+                            'No parameters required': 'No parameters required',
+                            'name': 'name',
+                            'type': 'type',
+                            'required': 'required',
+                            'minimum': 'minimum',
+                            'maximum': 'maximum',
+                            'test value': 'test value',
+                            'description': 'description',
+                            'Mock Test': 'Mock Test',
+                            'default': 'default',
+                        }
                     },
-                    en: {
-                        'api count': 'api count',
-                        'View api-shop documentation': 'View api-shop documentation',
-                        'Name': 'Name',
-                        'Url': 'Url',
-                        'Main document': 'Main document',
-                        'copy': 'copy',
-                        'Method Document': 'Method Document',
-                        'None': 'None',
-                        'No parameters required': 'No parameters required',
-                        'name': 'name',
-                        'type': 'type',
-                        'required': 'required',
-                        'minimum': 'minimum',
-                        'maximum': 'maximum',
-                        'test value': 'test value',
-                        'description': 'description',
-                        'Mock Test': 'Mock Test',
-                        'default': 'default',
+                }
+            },
+            computed: {
+                // 计算属性的 getter
+                testString: function() {
+                    // `this` 指向 vm 实例
+                    return JSON.stringify(this.testData);
+                }
+            },
+            created() {
+                this.baseUrl = window.location.pathname.split('document')[0];
+                this.getApi();
+
+            },
+            mounted() {
+                var clipboard = new ClipboardJS('#copy');
+                let that = this;
+                clipboard.on('success', function(e) {
+                    that.$notify({
+                        title: '成功',
+                        message: `已经将 ${e.text} 复制到粘贴板。`,
+                        type: 'success'
+                    });
+                    e.clearSelection();
+                });
+            },
+
+            methods: {
+                _(text) {
+                    let lang = this.options.lang ? this.options.lang : 'en'
+                    return this.i18n[lang][text] ? this.i18n[lang][text] : text;
+                },
+                getApi() {
+                    // window.location.search
+                    // window.tt = this
+                    this.ajax('get', `${this.baseUrl}api_data`)
+                        .then((res) => {
+                            this.apiList = res.data.data;
+                            this.options = res.data.options;
+
+                            if (this.options.name_classification) this.make_filter_data('name_type', this.options.name_classification);
+                            if (this.options.url_classification) this.make_filter_data('url_type', this.options.url_classification);
+                        })
+                        .catch((error) => {
+                            console.log('error', error);
+                        });
+
+
+                },
+                make_filter_data(obj, data) {
+                    this[obj] = [];
+                    for (let i in data) {
+                        this[obj].push({
+                            text: data[i],
+                            value: data[i]
+                        })
                     }
                 },
-            }
-        },
-        computed: {
-            // 计算属性的 getter
-            testString: function() {
-                // `this` 指向 vm 实例
-                return JSON.stringify(this.testData);
-            }
-        },
-        created() {
-            this.baseUrl = window.location.pathname.split('document')[0];
-            this.getApi();
+                filterName(value, row) {
+                    return row.name.indexOf(value) >= 0;
+                },
+                filterUrl(value, row) {
+                    return row.url.indexOf(value) >= 0;
+                },
+                viewDocument(api) {
+                    this.$set(this, 'currentApi', api);
+                    console.log(api)
 
-        },
-        mounted() {
-            var clipboard = new ClipboardJS('#copy');
-            let that = this;
-            clipboard.on('success', function(e) {
-                that.$notify({
-                    title: '成功',
-                    message: `已经将 ${e.text} 复制到粘贴板。`,
-                    type: 'success'
-                });
-                e.clearSelection();
-            });
-        },
-
-        methods: {
-            _(text) {
-                let lang = this.options.lang ? this.options.lang : 'en'
-                return this.i18n[lang][text] ? this.i18n[lang][text] : text;
-            },
-            getApi() {
-                this.ajax('get', `${this.baseUrl}api_data`)
-                    .then((res) => {
-                        this.apiList = res.data.data;
-                        this.options = res.data.options;
-
-                        if (this.options.name_classification) this.make_filter_data('name_type',this.options.name_classification);
-                        if (this.options.url_classification) this.make_filter_data('url_type',this.options.url_classification);
-                    })
-                    .catch((error) => {
-                        console.log('error', error);
+                    this.testData = Mock.mock({
+                        "string|1-10": "★"
                     });
+                },
+                getRandomInt(min, max) {
+                    min = Math.ceil(min);
+                    max = Math.floor(max);
+                    return Math.floor(Math.random() * (max - min + 1)) + min;
+                },
 
+                mockTest(method, key) {
+                    let url = this.options.base_url + this.currentApi.url
+                    console.log('url',url)
+                    this.$alert('请打开F12查看发送情况。', '提示')
+                    let mapping = {
+                        str: '@string',
+                        int: '@integer',
+                        float: '@float',
+                        bool: '@boolean',
+                        list: '@range',
+                        set: '@range',
+                        "api_shop.data_format.datetime": '@datetime'
+                    }
+                    let mockConf = {}
+                    for (let i in method) {
 
-            },
-            make_filter_data(obj,data){
-                this[obj] = [];
-                for(let i in data){
-                    this[obj].push({
-                    text:data[i],
-                    value:data[i]
+                        if (method[i].value) {
+                            mockConf[method[i].name] = method[i].value;
+                        } else if (!method[i].required) {
+                            continue;
+                        } else {
+                            let min = method[i].min ? method[i].min : 1;
+                            let max = method[i].max ? method[i].max : 20;
+                            let length = this.getRandomInt(min, max);
+                            let val = mapping[method[i].type] ? mapping[method[i].type] : '@character'
+                            if (method[i].type == 'list' || method[i].type == 'set') val = `${val}(${length})`;
+                            if (method[i].type == 'str') val = `${val}("lower",${length})`;
+                            if (method[i].type == 'int' || method[i].type == 'float') val = `${val}(${min},${max})`;
+
+                            
+                        }
+
+                        if(url.indexOf(`<${method[i].name}>`)>=0){
+                            // console.log(method[i].name,mockConf[method[i].name])
+                            url = url.replace(`<${method[i].name}>`,mockConf[method[i].name])
+                            // console.log(url)
+                            mockConf[method[i].name] = undefined
+                        }
+
+                    }
+                    console.log('发送mock数据包', mockConf, key)
+
+                    if (key == 'GET' || key == 'DELETE') mockConf = {
+                        params: mockConf
+                    };
+
+                    axios[key.toLowerCase()](url, mockConf).then(res => {
+                        console.log('mock数据访问api成功：', res);
+                    }).catch(error => {
+                        console.log('mock数据访问api失败：', error);
                     })
-                }
-            },
-            filterName(value, row) {
-                return row.name.indexOf(value)>=0;
-            },
-            filterUrl(value, row) {
-                return row.url.indexOf(value)>=0;
-            },
-            viewDocument(api) {
-                this.$set(this, 'currentApi', api);
-                console.log(api)
 
-                this.testData = Mock.mock({
-                    "string|1-10": "★"
-                });
-            },
-            getRandomInt(min, max) {
-                min = Math.ceil(min);
-                max = Math.floor(max);
-                return Math.floor(Math.random() * (max - min + 1)) + min;
-            },
+                },
+                ajax(method, url, data) {
+                    let ajaxObject = {
+                        url: url,
+                        method: method,
+                        timeout: 30000,
 
-            mockTest(method, key) {
-                this.$alert('请打开F12查看发送情况。', '提示')
-                let mapping = {
-                    str: '@string',
-                    int: '@integer',
-                    float: '@float',
-                    bool: '@boolean',
-                    list: '@range',
-                    set: '@range',
-                    "api_shop.data_format.datetime": '@datetime'
-                }
-                let mockConf = {}
-                for (let i in method) {
-
-                    if (method[i].value) {
-                        mockConf[method[i].name] = method[i].value;
-                    } else if (!method[i].required) {
-                        continue;
+                    }
+                    if (method == 'get' || method == 'delete') {
+                        ajaxObject.params = data
                     } else {
-                        let min = method[i].min ? method[i].min : 1;
-                        let max = method[i].max ? method[i].max : 20;
-                        let length = this.getRandomInt(min, max);
-                        let val = mapping[method[i].type] ? mapping[method[i].type] : '@character'
-                        if (method[i].type == 'list' || method[i].type == 'set') val = `${val}(${length})`;
-                        if (method[i].type == 'str') val = `${val}("lower",${length})`;
-                        if (method[i].type == 'int' || method[i].type == 'float') val = `${val}(${min},${max})`;
-                        mockConf[method[i].name] = Mock.mock(val);
+                        ajaxObject.headers = {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                        ajaxObject.data = data
                     }
-
+                    return axios(ajaxObject)
                 }
-                console.log('发送mock数据包', mockConf, key)
-
-                if (key == 'GET' || key == 'DELETE') mockConf = {
-                    params: mockConf
-                };
-
-                axios[key.toLowerCase()](this.options.base_url + this.currentApi.url, mockConf).then(res => {
-                    console.log('mock数据访问api成功：', res);
-                }).catch(error => {
-                    console.log('mock数据访问api失败：', error);
-                })
-
-            },
-            ajax(method, url, data) {
-                let ajaxObject = {
-                    url: url,
-                    method: method,
-                    timeout: 30000,
-
-                }
-                if (method == 'get' || method == 'delete') {
-                    console.log('get!', data)
-                    ajaxObject.params = data
-                } else {
-                    ajaxObject.headers = {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                    ajaxObject.data = data
-                }
-                return axios(ajaxObject)
             }
         }
-    }
+        // Vue.prototype.$ELEMENT = { size: 'mini'};
     var Ctor = Vue.extend(Main)
+    window.ts = Ctor
     new Ctor().$mount('#app')
 </script>
 <!-- {% endverbatim %} -->

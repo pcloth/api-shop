@@ -9,10 +9,11 @@ import json, traceback, os, re, time
 
 from .i18n import i18n_init
 from .__init__ import __version__
-
+from .url_parse import parse_rule
 i18 = i18n_init('zh')
 
 _ = i18._
+
 
 # django引入包
 framework = None
@@ -198,6 +199,7 @@ class ApiShop():
         self.conf = self.__make_model(conf)
         
         self.api_count = len(self.conf)
+        self.__init_url_rules()
 
         
     def __class_to_json(self, methods):
@@ -253,17 +255,85 @@ class ApiShop():
 
     def __find_api_function(self, url):
         # 查找api所指向的模块
-        if(type(url)==tuple and len(url)>0):
-            model = self.url_dict.get(url[0])
+        if (type(url) == tuple and len(url) > 0):
+            key, value_dict = self.__find_url_rule(url[0])
+            model = self.url_dict.get(key)
             if model:
-                return model
-            else:
-                return self.__not_find_url_function
+                return model,key,value_dict
+        return self.__not_find_url_function,None,None
 
     def __find_api_methons(self, url):
         # 查找api所指向的方法
-        if(type(url)==tuple and len(url)>0):
-            return self.url_methods.get(url[0])
+        return self.url_methods.get(url)
+
+    def __find_url_rule(self, url):
+        # 从规则列表中匹配当前访问的url
+        value_dict = {}
+        for obj in self.rule_maps:
+            url_ = url
+            line = obj['line']
+            key = obj['key']
+            for rule in line:
+                m = re.match(rule['regex'], url_)
+                if not m:
+                    break
+                pos,end = m.span()
+                url_ = url_[end:] # 截断url
+                if rule['type']=='variable':
+                    # 动态查找
+                    value_dict.update({
+                        rule['variable']: m.group(0)  # {'value':'test'}
+                    })
+            if url_:
+                # 有剩余url，表示该行不匹配
+                continue
+            else:
+                return key, value_dict
+        return None,None
+
+
+    def __init_url_rules(self):
+        # _converter_args_re = re.compile(r'''
+        #     ((?P<name>\w+)\s*=\s*)?
+        #     (?P<value>
+        #         True|False|
+        #         \d+.\d+|
+        #         \d+.|
+        #         \d+|
+        #         [\w\d_.]+|
+        #         [urUR]?(?P<stringval>"[^"]*?"|'[^']*')
+        #     )\s*,
+        # ''' , re.VERBOSE | re.UNICODE)
+        _converter_args_re = re.compile(r'''
+        (?P<value>
+            (\w+)
+        )''' ,re.VERBOSE | re.UNICODE)
+
+        self.rule_maps = [] # 规则映射表
+        for rule in self.url_dict.keys():
+            index = 0
+            this_rule = []
+            for converter, arguments, variable in parse_rule(rule):
+                if converter is None:
+                    # 静态地址
+                    this_rule.append({
+                        'regex': re.escape(variable),
+                        'type':'static'
+                        })
+                else:
+                    # 动态查询
+                    this_rule.append({
+                        'regex': _converter_args_re,
+                        'variable':variable,
+                        'converter':converter,
+                        'type':'variable'
+                        })
+                index = index + 1
+            self.rule_maps.append({
+                'line': this_rule,
+                'key':rule
+            })
+    
 
     def get_parameter(self, request):
         # 获取参数
@@ -380,12 +450,14 @@ class ApiShop():
         
         return None, value
 
-    def verify_parameter(self, request, par_conf):
+    def verify_parameter(self, request, par_conf,value_dict=None):
         # 校验参数合法性，并转换成参数对象
         if type(par_conf) != list:
             return _('The wrong configuration, methons must be loaded inside the list container.'), None
 
         parameter = self.get_parameter(request)
+        if value_dict:
+            parameter.update(value_dict)
         adc = ApiDataClass()
         errmsg = []
         # 从参数配置获取参数
@@ -400,12 +472,12 @@ class ApiShop():
         
     def api_entry(self,request,*url):
         '''api入口'''
-        model = self.__find_api_function(url)
-        methons = self.__find_api_methons(url)
+        model, key, value_dict = self.__find_api_function(url)
+        methons = self.__find_api_methons(key)
         
         if methons and not methons.get(request.method) is None:
             # 有配置方法和参数，校验参数合法性，并转换参数
-            errmsg, data = self.verify_parameter(request, methons.get(request.method))
+            errmsg, data = self.verify_parameter(request, methons.get(request.method),value_dict)
             if errmsg:
                 return return_response(errmsg)
         else:
