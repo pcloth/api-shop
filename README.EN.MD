@@ -23,7 +23,7 @@
 ## **update record:**
 > 2019-03-06
 >
-> ver 1.6.6
+> ver 1.6.7
 - Add url parameter support
 - E.g:
 ```python

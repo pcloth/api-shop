@@ -351,11 +351,11 @@
                             if (method[i].type == 'list' || method[i].type == 'set') val = `${val}(${length})`;
                             if (method[i].type == 'str') val = `${val}("lower",${length})`;
                             if (method[i].type == 'int' || method[i].type == 'float') val = `${val}(${min},${max})`;
-
+                            mockConf[method[i].name] = Mock.mock(val);
                             
                         }
 
-                        if(url.indexOf(`<${method[i].name}>`)>=0){
+                        if(mockConf[method[i].name] && url.indexOf(`<${method[i].name}>`)>=0){
                             // console.log(method[i].name,mockConf[method[i].name])
                             url = url.replace(`<${method[i].name}>`,mockConf[method[i].name])
                             // console.log(url)
