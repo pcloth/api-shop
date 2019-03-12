@@ -89,7 +89,8 @@ def check_fill_methods(model, thisconf):
             
             addstring += '''
     def {}(self, request, data):
-        """api-shop automatically inserts code{}
+        """ todo:
+        api-shop automatically inserts code{}
         """
         pass'''.format(key,fill_method_args(methods[m]))
 

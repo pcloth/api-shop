@@ -11,10 +11,10 @@
 
 ## **核心功能：**
 1. 配置化api生成。
-2. 自动校验request提交的数据，并转换成制定格式。
+2. 自动校验request提交的数据，并转换成指定格式，支持：int，float，list，dict，set，tuple，bool
 3. 自动生成api文档，并提供一个web页面可供查询和mock数据演示。
-4. 兼容django 和 flask
-5. 容器格式转换：int，float，list，dict，set，tuple，bool
+4. 兼容 ```django``` 和 ```flask``` 。
+5. 自动生成接口```骨架文件```功能。
 6. 自定义格式转换器，data_format.datetime格式转换类；'2019-01-18 23:25:25' to datetime
 7. 多国语言支持。
 8. 文档支持热重载。
@@ -23,6 +23,44 @@
 
 
 ## **更新记录：**
+> 2019-03-12
+>
+> ver 1.7.0
+- 添加根据配置文件自动生成接口骨架文件：当你添加conf内容的时候，api-shop会根据其内容自动创建
+  目录、文件、引入模块、创建类和方法，以及根据接口配置的参数创建备注信息，减少你的代码量。
+- 例如：
+```python
+af = ApiShop(conf,
+    {
+        'lang': 'zh',
+        'name_classification': ['微信', '账户'],
+        'url_classification': ['weixin', 'login'],
+        'auto_create_folder': True,  # 自动创建文件夹
+        'auto_create_file': True,  # 自动创建文件
+        'auto_create_class': True,  # 自动创建类
+        'auto_create_method': True,  # 自动创建方法
+    })
+```
+
+生成后的文件
+```python
+# api-shop automatically inserts code
+from api_shop import Api
+
+
+class api_login(Api):
+    """微信账户登录"""
+    pass
+    def post(self, request, data):
+        """ todo:
+        api-shop automatically inserts code
+        data.username # 用户名
+        data.ddd # 日期
+        """
+        pass
+```
+
+
 > 2019-03-06
 >
 > ver 1.6.7
@@ -160,6 +198,11 @@ lang         | str        | en | 多国语言支持，目前内置en, zh
 lang_pack         | dict        | 无 | 扩展语言包，如果你想让api-shop支持更多语言
 name_classification | list | 无 | 用于默认的文档模板对接口名称进行过滤，便于查找
 url_classification | list | 无 | 用于默认的文档模板对接口url进行过滤，便于查找。例子：'url_classification':['weixin','login']
+auto_create_folder | bool | False | 自动创建文件夹
+auto_create_file | bool | False | 自动创建文件
+auto_create_class | bool | False | 自动创建类
+auto_create_method | bool | False | 自动创建方法
+
 
 > lang_pack 语言包
 > 
