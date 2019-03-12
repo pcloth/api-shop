@@ -1,3 +1,5 @@
 {
-    "restructuredtext.confPath": ""
+    "restructuredtext.confPath": "",
+    "translateSpeaker.voiceFilename": false,
+    "translateSpeaker.voiceEditing": false
 }

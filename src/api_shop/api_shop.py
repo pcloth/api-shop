@@ -10,6 +10,8 @@ import json, traceback, os, re, time
 from .i18n import i18n_init
 from .__init__ import __version__
 from .url_parse import parse_rule
+from .autofill import auto_fill,check_fill_methods
+
 i18 = i18n_init('zh')
 
 _ = i18._
@@ -37,21 +39,6 @@ if not framework:
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 BAD_REQUEST = True
-
-def dynamic_import(name):
-    if type(name)!=str:
-        # 直接传入的对象
-        return name
-    components = name.split('.')
-    path = '.'.join(components[:-1])
-    try:
-        mod = __import__(path)
-        for comp in components[1:]:
-            mod = getattr(mod,comp)
-        return mod
-    except:
-        exec('from {} import {}'.format(path, components[-1]))
-        return eval(components[-1])
 
 class Namespace(dict):
     def __getattr__(self, name):
@@ -161,7 +148,11 @@ class ApiShop():
                 'base_url':'/api/', # 基础url，用以组合给前端的api url
                 'bad_request': True,  # 参数bad_request如果是真，发生错误返回一个坏请求给前端，否则都返回200的response，里面附带status=error和msg附带错误信息
                 'document': BASE_DIR + '/api_shop/static/document.html',  # 文档路由渲染的模板
-                'lang':'en',
+                'lang': 'en',
+                'auto_create_folder': False,  # 自动创建文件夹
+                'auto_create_file': False,  # 自动创建文件
+                'auto_create_class': False,  # 自动创建类
+                'auto_create_method': False,  # 自动创建方法
                 
             }
         self.document_version = ''
@@ -221,10 +212,34 @@ class ApiShop():
 
         return eval(string)
 
+    def __dynamic_import(self, thisconf):
+        name = thisconf['class']
+        if type(name)!=str:
+            # 直接传入的对象
+            return name
+        components = name.split('.')
+        path = '.'.join(components[:-1])
+        try:
+            mod = __import__(path)
+            for comp in components[1:]:
+                mod = getattr(mod,comp)
+            return mod
+        except:
+            try:
+                exec('from {} import {}'.format(path, components[-1]))
+                return eval(components[-1])
+            except:
+                # 无法加载
+                if auto_fill(thisconf, self.options) == True:
+                    # 自动生成文件或者方法，成功后重试一次。
+                    return self.__dynamic_import(thisconf)
+            
+
     def __make_model(self, conf):
         # 将字符串里的function模块和函数加载进来，并写入到run_function字段方便调用。
         for i in range(len(conf)):
-            model = dynamic_import(conf[i]['class'])
+            # model = dynamic_import(conf[i]['class'])
+            model = self.__dynamic_import(conf[i])
             if type(conf[i]['class'])!=str:
                 # 直接使用对象
                 conf[i]['class'] = self.__class_to_json(conf[i]['class'])
@@ -239,12 +254,15 @@ class ApiShop():
             if hasattr(model,'__doc__'):
                 conf[i]['document'] = getattr(model, '__doc__')
             conf[i]['methods_documents'] = {}
+            if self.options.get('auto_create_method'):
+                check_fill_methods(model,conf[i])
             for key in ['get', 'post', 'delete', 'put', 'patch']:
                 # 把业务类子方法的文档添加到数据表
                 if hasattr(model, key):
                     mt = getattr(model, key)
                     if hasattr(mt, '__doc__'):
-                        conf[i]['methods_documents'].update({key.upper():getattr(mt, '__doc__')})
+                        conf[i]['methods_documents'].update({key.upper(): getattr(mt, '__doc__')})
+
 
         return conf
 

@@ -11,7 +11,7 @@ simple_page = Blueprint('simple_page', __name__,
 conf = [
     {
         'url': 'weixin/login',
-        'class': 'business_code.views.api_login',
+        'class': 'business_code.test.abc.api_login',
         'name': '微信账户登录',
         'methods': {
             'POST': [
@@ -39,7 +39,16 @@ conf = [
 ]
 
 
-af = ApiShop(conf, {'lang': 'zh','name_classification':['微信','账户'],'url_classification':['weixin','login']})
+af = ApiShop(conf,
+    {
+        'lang': 'zh',
+        'name_classification': ['微信', '账户'],
+        'url_classification': ['weixin', 'login'],
+        'auto_create_folder': True,  # 自动创建文件夹
+        'auto_create_file': True,  # 自动创建文件
+        'auto_create_class': True,  # 自动创建类
+        'auto_create_method': True,  # 自动创建方法
+    })
 
 
 @simple_page.route('/api/<regex("([\s\S]*)"):url>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
