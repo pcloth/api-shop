@@ -29,6 +29,7 @@ class Namespace(dict):
 class ApiInit(Namespace):
     BAD_REQUEST = True
     
+    
 
 
 # 框架基础配置
@@ -41,10 +42,13 @@ class FW(Namespace):
             'django.http': ['JsonResponse','HttpResponse']
         },
         'flask': {
-            'flask':['render_template_string','jsonify']
+            'flask': ['render_template_string','jsonify']
         },
+        'bottle':{
+            'bottle': ['template', 'HTTPResponse']
+        }
     }
-    framework_order = ['django', 'flask']
+    framework_order = ['django', 'flask', 'bottle']
 
     def load_fw_model(self, fwname, err_out=False):
         '''加载框架的方法'''
@@ -100,18 +104,22 @@ def return_response(msg=None, status_code=400):
             return api.framework.HttpResponse(msg, status=status_code)
         if api.framework.name == 'flask':
             return api.framework.jsonify({'msg':msg}),status_code
+        if api.framework.name == 'bottle':
+            return api.framework.HTTPResponse({'msg':msg},status=status_code)
         raise BaseException(_('not flask or django'))
     else:
         if api.framework.name == 'django':
-            return api.framework.JsonResponse({'status': status_code, 'message': msg})
+            return api.framework.JsonResponse({'status': status_code, 'msg': msg})
         if api.framework.name == 'flask':
-            return api.framework.jsonify({'msg':msg}),status_code
+            return api.framework.jsonify({'status': status_code, 'msg': msg})
+        if api.framework.name == 'bottle':
+            return api.framework.HTTPResponse({'msg':msg,'status':status_code})
         raise BaseException(_('not flask or django'))
 
 class Api():
     '''制作api接口的最终方法时，请继承本类，用法类似Flask-RESTful的Resource
     例子：
-    class youapi(Api):
+    class your_api(Api):
         def get(self,request,data):
             # request 是当前的请求上下文
             # data 是被参数过滤器过滤并格式化后的请求附带数据
@@ -136,7 +144,6 @@ class Api():
                 status_code = retdata[1] or 200
             else:
                 ret = retdata
-            
             # 允许返回空body
             if ret == None:
                 ret = ''
@@ -145,11 +152,15 @@ class Api():
                     return api.framework.JsonResponse(ret, status=status_code)
                 if api.framework.name == 'flask':
                     return api.framework.jsonify(ret), status_code
+                if api.framework.name == 'bottle':
+                    return api.framework.HTTPResponse(ret, status=status_code)
             else:
                 if api.framework.name == 'django':
                     return api.framework.HttpResponse(ret, status=status_code)
                 if api.framework.name == 'flask':
                     return ret, status_code
+                if api.framework.name == 'bottle':
+                    return api.framework.HTTPResponse(ret, status=status_code)
             raise BaseException(_('not flask or django'))
         else:
             return return_response(_('not found in conf')+ '{}'.format(method))
@@ -422,6 +433,14 @@ class ApiShop():
                         data.update(jd)
                 except:
                     pass
+        if api.framework.name == 'bottle':
+            if request.GET:                
+                data.update(request.GET)
+            if request.POST:
+                data.update(request.POST)
+            if request.json:
+                data.update(request.json)
+
         return data
 
         
@@ -540,7 +559,6 @@ class ApiShop():
             return return_response(_('no such interface method'))
    
         ret = model(request, data)
-
         return ret
 
     def render_documents(self,request,*url):
@@ -551,6 +569,8 @@ class ApiShop():
             return api.framework.HttpResponse(content=self.document, content_type=None, status=200, reason=None, charset=None)
         elif api.framework.name == 'flask':
             return api.framework.render_template_string('{% raw %}'+self.document+'{% endraw %}')
+        elif api.framework.name == 'bottle':
+            return self.document
  
     def get_api_data(self, request, *url):
         '''返回给文档页面数据'''
@@ -558,4 +578,6 @@ class ApiShop():
             return api.framework.JsonResponse({'data': self.conf,'options':self.options})
         elif api.framework.name == 'flask':
             return api.framework.jsonify({'data': self.conf, 'options': self.options})
+        elif api.framework.name == 'bottle':
+            return api.framework.HTTPResponse({'data':self.conf,'options':self.options})
         

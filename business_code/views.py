@@ -7,7 +7,7 @@ class api_login(Api):
         print(data)
 
         
-        return {'status': 'success', }
+        return {'status': 'success'}
 
 
 class test(Api):
