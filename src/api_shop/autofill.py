@@ -76,7 +76,8 @@ def check_fill_methods(model, thisconf):
             # 没有指定方法
             addstring += '''
     def {}(self, request, data):
-        """api-shop automatically inserts code{}
+        """ todo:
+        api-shop automatically inserts code{}
         """
         pass'''.format(key,fill_method_args(methods[m]))
     if not addstring:

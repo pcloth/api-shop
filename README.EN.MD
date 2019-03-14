@@ -9,16 +9,53 @@
 
 ## **core function:**
 1. Configuration api generation.
-2. Automatically verify the data submitted by the request and convert it to a format.
+2. Automatically verify the data submitted by the request and convert it to the specified format, supporting: int, float, list, dict, set, tuple, bool
 3. Automatically generate api documents and provide a web page for query and mock data presentation.
-4. Compatible with django and flask
-5. Container format conversion: int, float, list, dict, set, tuple, bool
-6. Custom Format Converter, data_format.datetime format conversion class; '2019-01-18 23:25:25' to datetime
+4. Compatible with ```django``` and ```flask```.
+5. Automatically generate interface ``` skeleton file ``` function.
+6. Custom format converter, data_format.datetime format conversion class; '2019-01-18 23:25:25' to datetime
 7. Multi-language support.
-8. Document support hot overload.
+8. The documentation supports hot overloading.
 9. The default value supports method functions.
 10. Support url contains parameters, such as ```/api/user/<id>```, and set its rules when configuring the parameters parameter.
 
+
+## **update record:**
+> 2019-03-12
+>
+> ver 1.7.0
+- Added automatic generation of interface skeleton files based on configuration files: When you add conf content, api-shop will automatically create based on its contents.Reduce the amount of code by cataloging files, importing modules, creating classes and methods, and creating notes based on parameters configured by the interface.
+- E.g:
+```python
+Af = ApiShop(conf,
+    {
+        'lang': 'zh',
+        'name_classification': ['WeChat', 'Account'],
+        'url_classification': ['weixin', 'login'],
+        'auto_create_folder': True, # Create folder automatically
+        'auto_create_file': True, # Automatically create files
+        'auto_create_class': True, # automatically create class
+        'auto_create_method': True, # automatic creation method
+    })
+```
+
+Generated file
+```python
+# api-shop automatically inserts code
+from api_shop import Api
+
+
+class api_login(Api):
+    """WeChat account login """
+    Pass
+    Def post(self, request, data):
+        """ todo:
+        Api-shop automatically inserts code
+        Data.username # username
+        Data.ddd # Date
+        """
+        Pass
+```
 
 ## **update record:**
 > 2019-03-06
@@ -157,6 +194,13 @@ lang | str | en | Multi-language support, currently built in en, zh
 lang_pack | dict | None | Extended language pack if you want api-shop to support more languages
 name_classification | list | none | used for default document templates to filter interface names for easy searching
 url_classification | list | None | Used by the default document template to filter the interface url for easy searching. Example: 'url_classification':['weixin', 'login']
+auto_create_folder | bool | False | Automatically create folder
+auto_create_file | bool | False | Automatically create files
+auto_create_class | bool | False | Automatically create class
+auto_create_method | bool | False | Automatically create method
+
+
+
 
 > lang_pack language pack
 >

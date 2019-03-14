@@ -3,6 +3,7 @@ README.rst
 setup.py
 api_shop/__init__.py
 api_shop/api_shop.py
+api_shop/autofill.py
 api_shop/data_format.py
 api_shop/i18n.py
 api_shop/url_parse.py
