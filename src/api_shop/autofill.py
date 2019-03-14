@@ -1,4 +1,22 @@
-import os,re
+import os, re
+
+def __find_path(name):
+    # 深度切分：
+    deep = name.split('.')
+    if len(deep)>=3:
+        path = '/'.join(deep[:-1]) # 检查路径
+        folder = '/'.join(deep[:-2]) # 第三个开始是文件夹
+        filename = deep[-2] # 倒数第二个是文件名
+        classname = deep[-1] # 最后一个是类
+    elif len(deep)==2:
+        path = deep[0]
+        folder = None
+        filename = deep[0] # 倒数第二个是文件名
+        classname = deep[1]  # 最后一个是类
+    else:
+        # 太短了，不创建文件
+        return None, None, None, None
+    return path, folder, filename, classname
 
 def auto_fill(thisconf, options):
     name = thisconf['class']
@@ -13,37 +31,22 @@ def auto_fill(thisconf, options):
     class_flag = options.get('auto_create_class')
     method_flag = options.get('auto_create_method')
 
-    # 深度切分：
-    deep = name.split('.')
-
-    if len(deep)>=3:
-        path = '/'.join(deep[:-1]) # 检查路径
-        folder = '/'.join(deep[:-2]) # 第三个开始是文件夹
-        filename = deep[-2] # 倒数第二个是文件名
-        classname = deep[-1] # 最后一个是类
-    elif len(deep)==2:
-        path = deep[0]
-        folder = None
-        filename = deep[0] # 倒数第二个是文件名
-        classname = deep[1]  # 最后一个是类
-    else:
-        # 太短了，不创建文件
+    path, folder, filename, classname = __find_path(name)
+    if not path:
         return False
 
     if folder_flag and (not os.path.exists(folder)):
         # 文件夹不存在，
-        # print('文件夹不存在',folder)
         os.makedirs(folder)
 
     if file_flag and (not os.path.exists(path+'.py')):
         # 文件不存在
-        # print('文件不存在',path)
         create_file(path)
 
     try:
         exec('from {} import {}'.format('.'.join(path), classname))
     except:
-        # print('类不存在')
+        # 类不存在
         if class_flag:
             create_class(path, classname, thisconf)
         else:
@@ -65,58 +68,36 @@ def check_fill_methods(model, thisconf):
         # 直接传入的对象
         return False
     methods = thisconf['methods']
-    # 深度切分：
-    deep = name.split('.')
-    if len(deep)>=3:
-        path = '/'.join(deep[:-1]) # 检查路径
-        folder = '/'.join(deep[:-2]) # 第三个开始是文件夹
-        filename = deep[-2] # 倒数第二个是文件名
-        classname = deep[-1] # 最后一个是类
-    elif len(deep)==2:
-        path = deep[0]
-        folder = None
-        filename = deep[0] # 倒数第二个是文件名
-        classname = deep[1]  # 最后一个是类
-    else:
-        # 太短了，不创建文件
-        return False
+    addstring = ''
     
-    addstring =''
     for m in methods.keys():
         key = m.lower()
         if not hasattr(model, key):
             # 没有指定方法
-            
             addstring += '''
     def {}(self, request, data):
         """api-shop automatically inserts code{}
         """
         pass'''.format(key,fill_method_args(methods[m]))
-
     if not addstring:
         return False
 
-    
+    path, folder, filename, classname = __find_path(name)
+    if not path:
+        return False
+
     file = open(path + '.py', 'r', encoding='utf-8')
     content = file.read()
     file.close()
     pos = content.find("class {}(".format(classname))
     if pos < 0:
-        # 没找到
+        # 没找到类
         return False
-    
-    # 查找换行符后是非空字符的位置
+
     q = re.compile(r'(\n\S)', re.DOTALL)
-    ss = q.finditer(content[pos:])
-    span = None
-    for s in ss:
-        span = s.span()
-        break
-    if span:
-        pos += span[0]
-    else:
-        pos = len(content) - 1
-        
+    regex_ret = q.search(content[pos:])
+    # 如果是换行符后的非空字符，就在前面插入；否则就在文档最后插入
+    pos = regex_ret.span()[0] + pos if regex_ret else len(content) - 1
     content = content[:pos] + addstring + content[pos:]
     file = open(path + '.py', 'w', encoding='utf-8')
     file.write(content)

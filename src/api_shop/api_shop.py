@@ -5,40 +5,16 @@ api 工厂
 可以让用户用数据来配置api模块，并自动校验参数合法性和生成文档页面。
 by pcloth
 '''
-import json, traceback, os, re, time
+import json, traceback, os, re, time, importlib
 
 from .i18n import i18n_init
 from .__init__ import __version__
 from .url_parse import parse_rule
 from .autofill import auto_fill,check_fill_methods
 
-i18 = i18n_init('zh')
-
-_ = i18._
-
-
-# django引入包
-framework = None
-stacks = traceback.extract_stack()#[0].filename
-for stack in stacks:
-    if 'django' in stack.filename:
-        try:
-            from django.http import JsonResponse, HttpResponse
-            from django.shortcuts import render
-            framework = 'django'
-            break
-        except:
-            raise _('django version error')
-if not framework:
-    try:
-        from flask import render_template_string,jsonify
-        framework = 'flask'
-    except:
-        raise _('not flask or django')
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-BAD_REQUEST = True
+i18 = i18n_init('zh')
+_ = i18._
 
 class Namespace(dict):
     def __getattr__(self, name):
@@ -50,23 +26,83 @@ class Namespace(dict):
     def __setattr__(self, name, value):
         self[name] = value
 
+class ApiInit(Namespace):
+    BAD_REQUEST = True
+    
+
+
+# 框架基础配置
+class FW(Namespace):
+    # 配置框架需要使用的方法
+    # 例如 if api.framework.name=='django':api.framework.JsonResponse
+    # 就可以加载django的JsonResponse方法
+    framework_conf = {
+        'django': {
+            'django.http': ['JsonResponse','HttpResponse']
+        },
+        'flask': {
+            'flask':['render_template_string','jsonify']
+        },
+    }
+    framework_order = ['django', 'flask']
+
+    def load_fw_model(self, fwname, err_out=False):
+        '''加载框架的方法'''
+        if not self.framework_conf.get(fwname):
+            # 暂时不支持这个框架
+            raise BaseException(_('Not support') + ' {} , ('.format(fwname) + _('supported framework as follows:') + ' , '.join(self.framework_order) + ')')
+            
+        current_fw = self.framework_conf.get(fwname)
+        haserr = False
+        for path in current_fw:
+            try:
+                model = importlib.import_module(path)
+            except:
+                return
+            
+            for key in current_fw[path]:
+                if not hasattr(model, key):
+                    if err_out:
+                        raise BaseException(_('Framework version is not compatible.'))
+                    else:
+                        haserr = True
+                self[key] = getattr(model, key)
+        if not haserr:
+            self.name = fwname
+        
+
+    def __init__(self, fwname=None):
+        self.name = None
+        if fwname and type(fwname):
+            self.load_fw_model(fwname.lower(), True)
+        else:
+            # 从默认顺序加载框架
+            for fwname in self.framework_order:
+                self.load_fw_model(fwname)
+        if not self.name:
+            raise BaseException(_('supported framework as follows:') + ' , '.join(self.framework_order))
+            
+
+api = ApiInit()
+
+
 class ApiDataClass(Namespace):
     pass
 
 def return_response(msg=None, status_code=400):
     # 返回错误信息
-    if BAD_REQUEST:
-        if framework == 'django':
-            return HttpResponse(msg, status=status_code)
-        if framework == 'flask':
-            return jsonify({'msg':msg}),status_code
-        raise _('not flask or django')
+    if api.BAD_REQUEST:
+        if api.framework.name == 'django':
+            return api.framework.HttpResponse(msg, status=status_code)
+        if api.framework.name == 'flask':
+            return api.framework.jsonify({'msg':msg}),status_code
+        raise BaseException(_('not flask or django'))
     else:
-        if framework == 'django':
-            return JsonResponse({'status': status_code, 'message': msg})
-        if framework == 'flask':
-            return jsonify({'msg':msg}),status_code
-        raise _('not flask or django') 
+        if api.framework.name == 'django':
+            return api.framework.JsonResponse({'status': status_code, 'message': msg})
+        if api.framework.name == 'flask':
+            return api.framework.jsonify({'msg':msg}),status_code
+        raise BaseException(_('not flask or django'))
 
 class Api():
     '''制作api接口的最终方法时，请继承本类，用法类似Flask-RESTful的Resource
@@ -101,16 +137,16 @@ class Api():
             if ret == None:
                 ret = ''
             if type(ret)==dict:
-                if framework == 'django':
-                    return JsonResponse(ret, status=status_code)
-                if framework == 'flask':
-                    return jsonify(ret), status_code
+                if api.framework.name == 'django':
+                    return api.framework.JsonResponse(ret, status=status_code)
+                if api.framework.name == 'flask':
+                    return api.framework.jsonify(ret), status_code
             else:
-                if framework == 'django':
-                    return HttpResponse(ret, status=status_code)
-                if framework == 'flask':
+                if api.framework.name == 'django':
+                    return api.framework.HttpResponse(ret, status=status_code)
+                if api.framework.name == 'flask':
                     return ret, status_code
-            raise _('not flask or django')
+            raise BaseException(_('not flask or django'))
         else:
             return return_response(_('not found in conf')+ '{}'.format(method))
 
@@ -138,10 +174,8 @@ class ApiShop():
             
         }
         '''
+        
         self.i18n = i18
-
-        if not framework:
-            raise _('not flask or django')
 
         self.options = {
                 'version':__version__,
@@ -155,6 +189,7 @@ class ApiShop():
                 'auto_create_method': False,  # 自动创建方法
                 
             }
+        
         self.document_version = ''
         if options:
             self.options.update(options)
@@ -169,16 +204,15 @@ class ApiShop():
         except:
             self.document = '<h1>' + _('document template not found') + '</h1>'
 
+        # 指定框架
+        api.framework = FW(self.options.get('framework'))
         # 扩展语言包
         if type(self.options.get('lang_pack'))==dict:
             self.i18n.lang.update(self.options.get('lang_pack'))
         
         # 切换语言
         self.i18n.lang_name = self.options.get('lang')
-
-
-        global BAD_REQUEST
-        BAD_REQUEST = self.options.get('bad_request',True)
+        api.BAD_REQUEST = self.options.get('bad_request',True)
 
         # 当前加载的url和function的字典
         self.url_dict = {}  
@@ -357,7 +391,7 @@ class ApiShop():
         # 获取参数
         data = {}
         # 获取django的request数据
-        if framework=='django':
+        if api.framework.name =='django':
             if request.GET:
                 data.update(request.GET.dict())
             elif request.POST:
@@ -371,7 +405,7 @@ class ApiShop():
                     data.update(json.loads(request.body))
                 except:
                     pass
-        if framework == 'flask':
+        if api.framework.name == 'flask':
             if request.args:                
                 data.update(request.args.to_dict())
             elif request.form:
@@ -509,14 +543,15 @@ class ApiShop():
         '''渲染文档'''
         if self.document_version != time.ctime(os.stat(self.document_name).st_mtime):
             self.document = open(self.document_name,mode='r',encoding='utf-8').read()
-        if framework == 'django':
-            return HttpResponse(content=self.document, content_type=None, status=200, reason=None, charset=None)
-        elif framework == 'flask':
-            return render_template_string('{% raw %}'+self.document+'{% endraw %}')
-
+        if api.framework.name == 'django':
+            return api.framework.HttpResponse(content=self.document, content_type=None, status=200, reason=None, charset=None)
+        elif api.framework.name == 'flask':
+            return api.framework.render_template_string('{% raw %}'+self.document+'{% endraw %}')
+ 
     def get_api_data(self, request, *url):
         '''返回给文档页面数据'''
-        if framework == 'django':
-            return JsonResponse({'data': self.conf,'options':self.options})
-        elif framework == 'flask':
-            return jsonify({'data': self.conf,'options':self.options})
+        if api.framework.name == 'django':
+            return api.framework.JsonResponse({'data': self.conf,'options':self.options})
+        elif api.framework.name == 'flask':
+            return api.framework.jsonify({'data': self.conf, 'options': self.options})
+        
