@@ -48,7 +48,6 @@ af = ApiShop(conf,
         'auto_create_file': True,  # 自动创建文件
         'auto_create_class': True,  # 自动创建类
         'auto_create_method': True,  # 自动创建方法
-        'framework':'flask'
     })
 
 

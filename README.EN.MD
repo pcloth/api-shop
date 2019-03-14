@@ -21,6 +21,13 @@
 
 
 ## **update record:**
+> 2019-03-14
+>
+> var 1.7.1
+- Optimize the framework loading logic, the default loading framework order ```django``` -> ```flask```; add configuration parameters directly to specify the framework.
+- Optimize some of the regular processing logic.
+
+
 > 2019-03-12
 >
 > ver 1.7.0
@@ -57,7 +64,6 @@ class api_login(Api):
         Pass
 ```
 
-## **update record:**
 > 2019-03-06
 >
 > ver 1.6.7
@@ -198,6 +204,7 @@ auto_create_folder | bool | False | Automatically create folder
 auto_create_file | bool | False | Automatically create files
 auto_create_class | bool | False | Automatically create class
 auto_create_method | bool | False | Automatically create method
+Framework | str | None | Manually specify the framework, currently supports django and flask. If not specified, it will automatically try to load django, flask, and switch to the framework after loading successfully. Therefore, if multiple frames are installed at the same time, please specify manually.
 
 
 

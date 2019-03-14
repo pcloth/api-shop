@@ -23,7 +23,8 @@ class i18n_init():
             'no such interface method': 'No such interface method',
             'Framework version is not compatible.': 'Framework version is not compatible.',
             'Not support': 'Not support',
-            'supported framework as follows:':'supported framework as follows:'
+            'supported framework as follows:': 'supported framework as follows:',
+            'Did not find the framework':'Did not find the framework. Please install ',
         },
         'zh': {
             'django version error': 'Django 版本不兼容，推荐升级到2.x',
@@ -43,7 +44,8 @@ class i18n_init():
             'no such interface method': '这个接口没有这个method',
             'Framework version is not compatible.': 'api-shop不支持当前框架版本。',
             'Not support': '不支持',
-            'supported framework as follows:':'支持的框架如下：'
+            'supported framework as follows:': '支持的框架如下：',
+            'Did not find the framework':'没找指定的框架，请安装',
 
         }
     }

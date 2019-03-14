@@ -23,6 +23,13 @@
 
 
 ## **更新记录：**
+> 2019-03-14
+>
+> var 1.7.1
+- 优化框架加载逻辑，默认加载框架顺序```django``` -> ```flask```；添加配置参数直接指定框架。
+- 优化部分正则处理逻辑。
+
+
 > 2019-03-12
 >
 > ver 1.7.0
@@ -202,6 +209,7 @@ auto_create_folder | bool | False | 自动创建文件夹
 auto_create_file | bool | False | 自动创建文件
 auto_create_class | bool | False | 自动创建类
 auto_create_method | bool | False | 自动创建方法
+framework | str | 无 | 手动指定框架，目前支持django和flask，如果不指定，将自动尝试加载django、flask，加载成功就切换到该框架下，所以，如果同时安装了多个框架，请手动指定。
 
 
 > lang_pack 语言包

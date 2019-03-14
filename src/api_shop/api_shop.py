@@ -80,7 +80,11 @@ class FW(Namespace):
             for fwname in self.framework_order:
                 self.load_fw_model(fwname)
         if not self.name:
-            raise BaseException(_('supported framework as follows:') + ' , '.join(self.framework_order))
+            if not fwname:
+                raise BaseException(_('supported framework as follows:') + ' , '.join(self.framework_order))
+            else:
+                raise BaseException(_('Did not find the framework') + fwname)
+        
             
 
 api = ApiInit()
