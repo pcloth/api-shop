@@ -5,8 +5,6 @@ class i18n_init():
     '''
     lang = {
         'en': {
-            'django version error': 'Django version is not compatible',
-            'not flask or django': 'Currently only compatible with django and flask',
             'no attributes found': 'No attributes found: ',
             'not found in conf': 'Not found in conf: ',
             'document template not found': 'Document template not found',
@@ -27,8 +25,6 @@ class i18n_init():
             'Did not find the framework':'Did not find the framework. Please install ',
         },
         'zh': {
-            'django version error': 'Django 版本不兼容，推荐升级到2.x',
-            'not flask or django': '目前只支持Flask和Django',
             'no attributes found': '没有找到属性：',
             'not found in conf': '在conf参数中没找到方法: ',
             'no such interface': '没有这个接口',
