@@ -46,23 +46,13 @@ af = ApiShop(conf,
     })
 
 
-@route('/hello/<name>')
-def index(name):
-    return {'msg':'test message','index':[1,2,3,4]}
-    return template('<b>Hello {{name}}</b>!', name=name)
-
 @route('/api/<url:re:([\s\S]*)>',['GET','PUT','PATCH','DELETE','POST'])
 def api_index(url):
-    # print('*'*20)
-    # print(type(request.json))
     print('*'*20,url)
-    # print(dict(request.params))
-    # print(Request.GET.key())
     if url == 'document/':
         return af.render_documents(request, url)
     if url == 'api_data':
         return af.get_api_data(request, url)
-    # return HTTPResponse('',status=400)
     return af.api_entry(request, url)
 
 run(host='localhost', port=8080,reloader=True,debug=True)

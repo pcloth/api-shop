@@ -11,4 +11,4 @@ class api_login(Api):
         data.username # 用户名
         data.ddd # 日期
         """
-        return
+        return 'ok'

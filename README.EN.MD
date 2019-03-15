@@ -1,6 +1,7 @@
 # api-shop
 
-> What is api-shop: Provides an easy-to-use, lightweight restful-api interface toolkit based on the django or flask framework.
+> ### api-shop: An easy-to-use, fast restful-api interface toolkit compatible with `django` / `flask` / `bottle`.
+> ### `All is for less overtime. `
 
 ## **demo Image**
 
@@ -11,19 +12,27 @@
 1. Configuration api generation.
 2. Automatically verify the data submitted by the request and convert it to the specified format, supporting: int, float, list, dict, set, tuple, bool
 3. Automatically generate api documents and provide a web page for query and mock data presentation.
-4. Compatible with ```django``` and ```flask```.
+4. Compatible with `django` , `flask` , `bottle` (if you don't specify a frame, the frame is recognized by default in this order)
 5. Automatically generate interface ``` skeleton file ``` function.
 6. Custom format converter, data_format.datetime format conversion class; '2019-01-18 23:25:25' to datetime
-7. Multi-language support.
+7. Multi-language support, also supports custom language packs.
 8. The documentation supports hot overloading.
 9. The default value supports method functions.
 10. Support url contains parameters, such as ```/api/user/<id>```, and set its rules when configuring the parameters parameter.
 
 
 ## **update record:**
+> 2019-03-15
+>
+> ver 1.7.2
+- Further abstract optimization code to facilitate the addition of new framework support.
+- Added support for the bottle frame.
+- Add the bad_request_error_status parameter. When bad_request==False, bad_request_error_status is the custom error status information returned to the bad request.
+
+
 > 2019-03-14
 >
-> var 1.7.1
+> ver 1.7.1
 - Optimize the framework loading logic, the default loading framework order ```django``` -> ```flask```; add configuration parameters directly to specify the framework.
 - Optimize some of the regular processing logic.
 
@@ -90,37 +99,7 @@ Conf = [{
 - Add empty Response support, Api method can not return any value
 - Added support for bool parameter types
 - Interface documentation supports filtering (options are required)
-
-
-> 2019-02-11
->
-> ver 1.6.4
-- Fixed a problem where the default value is int:0 and does not trigger.
-
-
-> 2019-01-30
->
-> ver 1.6.2
-- Optimize project catalog
-- Shorten the format converter type name
-- The default value supports method functions, such as datetime.now. If it is a method function, it will no longer automatically compare types and conversions. You need to grasp the format yourself.
-
-> 2019-01-29
->
-> ver 1.6.1
-- Document support hot overload.
-- Document added version support
-- Optimization error tips
-
-> 2019-01-23
->
-> ver 1.6.0
->
-
-- Add multi-language support, you can specify the language or extend the language pack in options.
-- Document improvement
    
-
 
 ## **Usage: **
 1. Installation:
@@ -195,6 +174,7 @@ Key | Type | default | Description
 :----------- | :----------- | :----------- | -----------:
 base_url | str | /api/ | interface url prefix
 bad_request | bool | True | If the request is not valid, return it as a bad request; otherwise it is all 200 return
+bad_request_error_status | str, int, bool | 'error' | If the bad_request parameter is set to False, then this parameter will be enabled and will be accompanied by a status='error' message in the bad request. You can customize this information.
 document | str(path) |  | The path to the html template of the document page, there will be a simple template by default
 lang | str | en | Multi-language support, currently built in en, zh
 lang_pack | dict | None | Extended language pack if you want api-shop to support more languages
@@ -204,7 +184,7 @@ auto_create_folder | bool | False | Automatically create folder
 auto_create_file | bool | False | Automatically create files
 auto_create_class | bool | False | Automatically create class
 auto_create_method | bool | False | Automatically create method
-Framework | str | None | Manually specify the framework, currently supports django and flask. If not specified, it will automatically try to load django, flask, and switch to the framework after loading successfully. Therefore, if multiple frames are installed at the same time, please specify manually.
+Framework | str | None | Manually specify the framework, currently supports django, flask, bottle, if not specified, the framework will be identified in order, if multiple frames are installed at the same time, please specify manually.
 
 
 
@@ -214,24 +194,25 @@ Framework | str | None | Manually specify the framework, currently supports djan
 > value is the target language
 ```python
 'lang_pack':{
-    'en': {
-            'django version error': 'Django version is not compatible',
-            'not flask or django': 'Currently only compatible with django and flask',
-            'no attributes found': 'No attributes found: ',
-            'not found in conf': 'Not found in conf: ',
-            'document template not found': 'Document template not found',
-            'no such interface': 'No such interface',
-            'is required': 'is required',
-            'parameter': 'Parameter',
-            'can not be empty': 'can not be empty',
-            'must be type': 'must be type',
-            'minimum length': 'minimum length',
-            'minimum value': 'minimum value',
-            'maximum length': 'maximum length',
-            'maximum value': 'maximum value',
-            'The wrong configuration, methons must be loaded inside the list container.': 'The wrong configuration, methons must be loaded inside the list container.',
-            'no such interface method': 'No such interface method',
-        }
+    'zh': {
+            'no attributes found': '没有找到属性：',
+            'not found in conf': '在conf参数中没找到方法: ',
+            'no such interface': '没有这个接口',
+            'is required': '是必要的',
+            'parameter': '参数',
+            'can not be empty': '不能为空',
+            'must be type': '必须是类型',
+            'minimum length': '最小长度',
+            'minimum value': '最小值',
+            'maximum length': '最大长度',
+            'maximum value': '最大值',
+            'The wrong configuration, methons must be loaded inside the list container.': '错误的配置，methons必须装的list容器内。',
+            'no such interface method': '这个接口没有这个method',
+            'Framework version is not compatible.': 'api-shop不支持当前框架版本。',
+            'Not support': '不支持',
+            'supported framework as follows:': '支持的框架如下：',
+            'Did not find the framework':'没找指定的框架，请安装',
+        }
 }
 ```
 
@@ -378,3 +359,62 @@ def hello_world(url):
 if __name__ == '__main__':
     app.run(host="0.0.0.0",debug=True)
 ```
+
+
+
+
+3. [bottle例子]
+```python
+from bottle import route, run, template, request,HTTPResponse
+from src.api_shop import ApiShop
+
+conf = [
+    {
+        'url': 'weixin/login',
+        'class': 'business_code.test.abc.api_login',
+        'name': '微信账户登录',
+        'methods': {
+            'POST': [
+                {'name': 'username', 'type': str, 'required': True,
+                    'min': 3, 'max': 24, 'description': '用户名'},
+                {'name': 'ddd', 'type': str,   'description': '日期'},
+            ]
+        }
+    },
+    {
+        'url': 'weixin/<name>/<id>',
+        'class': 'business_code.views.test',
+        'name': '账户登录',
+        'methods': {
+            
+            'POST': [{'name': 'id', 'type': bool, 'required': True,
+                         'description': '用户id'},
+                         {'name': 'name', 'type': str, 'min':4,'required': True,
+                         'description': '用户name'}, 
+                    ],
+        }
+    },
+]
+
+af = ApiShop(conf,
+    {
+        'lang': 'zh',
+        'name_classification': ['微信', '账户'],
+        'url_classification': ['weixin', 'login'],
+        'framework':'bottle'
+    })
+
+
+@route('/api/<url:re:([\s\S]*)>',['GET','PUT','PATCH','DELETE','POST'])
+def api_index(url):
+    print('*'*20,url)
+    if url == 'document/':
+        return af.render_documents(request, url)
+    if url == 'api_data':
+        return af.get_api_data(request, url)
+    return af.api_entry(request, url)
+
+run(host='localhost', port=8080,reloader=True,debug=True)
+```
+
+
