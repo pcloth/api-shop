@@ -13,15 +13,35 @@
 2. Automatically verify the data submitted by the request and convert it to the specified format, supporting: int, float, list, dict, set, tuple, bool
 3. Automatically generate api documents and provide a web page for query and mock data presentation.
 4. Compatible with `django` , `flask` , `bottle` (if you don't specify a frame, the frame is recognized by default in this order)
-5. Automatically generate interface ``` skeleton file ``` function.
+5. Automatically generate the interface `skeleton file` function (please open it carefully).
 6. Custom format converter, data_format.datetime format conversion class; '2019-01-18 23:25:25' to datetime
 7. Multi-language support, also supports custom language packs.
 8. The documentation supports hot overloading.
 9. The default value supports method functions.
 10. Support url contains parameters, such as ```/api/user/<id>```, and set its rules when configuring the parameters parameter.
+11. Support multiple url binding an interface
 
 
 ## **update record:**
+> 2019-04-03
+>
+> var 1.7.3
+- Added support for multiple interfaces to support multiple url bindings.
+```python
+{
+         'url': ['weixin', 'weixin/<name>/<id>'],
+         'class': 'business_code.views.test',
+         'name': 'Account login',
+         'methods': {
+             'POST': [
+                 {'name': 'id', 'type': bool, 'required': True, 'description': 'user id'},
+                 {'name': 'name', 'type': str, 'min':4,'required': True,'description': 'username'},
+             ],
+         }
+     },
+```
+
+
 > 2019-03-15
 >
 > ver 1.7.2
@@ -140,7 +160,7 @@ conf = [
 >
 Key | Value Type | Description
 :----------- | :----------- | -----------:
-url | str | url address of the interface, only need to fill in the relative address
+url | str,list | The url address of the interface only needs to fill in the relative address. If there are multiple urls, you can configure it as `list`. Support url parameter: `/api/url/<id>`
 class | str,class | The business class that the interface actually calls (inherited to Api), which can be an object or a reference address
 name | str | the name of the interface
 Methods | dict | methods that the interface can receive: GET POST DELETE PUT PATCH

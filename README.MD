@@ -15,22 +15,39 @@
 2. 自动校验request提交的数据，并转换成指定格式，支持：int，float，list，dict，set，tuple，bool
 3. 自动生成api文档，并提供一个web页面可供查询和mock数据演示。
 4. 兼容 `django` , `flask` , `bottle` (如果不指定框架，默认按这个顺序识别框架)
-5. 自动生成接口`骨架文件`功能。
+5. 自动生成接口`骨架文件`功能（请谨慎开启）。
 6. 自定义格式转换器，data_format.datetime格式转换类；'2019-01-18 23:25:25' to datetime
 7. 多国语言支持，也支持自定义语言包。
 8. 文档热重载。
 9. 默认值支持方法函数。
 10. 支持url中包含参数，例如 `/api/user/<id>`，并且在配置methods参数的时候设置它的规则。
-
+11. 支持多url绑定一个接口
 
 ## **更新记录：**
+> 2019-04-03 
+>
+> var 1.7.3
+- 添加支持多url绑定一个接口支持。
+```python
+{
+        'url': ['weixin','weixin/<name>/<id>'],
+        'class': 'business_code.views.test',
+        'name': '账户登录',
+        'methods': {
+            'POST': [
+                {'name': 'id', 'type': bool, 'required': True,'description': '用户id'},
+                {'name': 'name', 'type': str, 'min':4,'required': True,'description': '用户name'}, 
+            ],
+        }
+    },
+```
+
 > 2019-03-15 
 >
 > var 1.7.2
 - 进一步抽象优化代码，便于添加新框架支持。
 - 添加bottle框架支持。
 - 添加bad_request_error_status参数，当bad_request==False的时候，bad_request_error_status是返回给坏请求的自定义错误状态信息
-
 
 
 > 2019-03-14
@@ -148,7 +165,7 @@ conf = [
 > 
 键 | 值类型 | 说明
 :----------- | :----------- | -----------:
-url         | str        | 接口的url地址，只需要填写相对地址
+url         | str,list        | 接口的url地址，只需要填写相对地址，如果有多条url，可以配置成`list`。支持url参数：`/api/url/<id>`
 class         | str,class        | 接口实际调用的业务类（继承至Api），可以是对象，也可以是引用地址
 name         | str        | 接口的名字
 methods         | dict        | 接口所能接收的methods：有GET POST DELETE PUT PATCH

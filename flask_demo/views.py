@@ -22,16 +22,14 @@ conf = [
         }
     },
     {
-        'url': 'weixin/<name>/<id>',
+        'url': ['weixin','weixin/<name>/<id>'],
         'class': 'business_code.views.test',
         'name': '账户登录',
         'methods': {
-            
-            'POST': [{'name': 'id', 'type': bool, 'required': True,
-                         'description': '用户id'},
-                         {'name': 'name', 'type': str, 'min':4,'required': True,
-                         'description': '用户name'}, 
-                    ],
+            'POST': [
+                {'name': 'id', 'type': bool, 'required': True,'description': '用户id'},
+                {'name': 'name', 'type': str, 'min':4,'required': True,'description': '用户name'}, 
+            ],
         }
     },
 
