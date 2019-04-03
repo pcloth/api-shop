@@ -31,17 +31,38 @@ api-shop
 #. 自动校验request提交的数据，并转换成指定格式，支持：int，float，list，dict，set，tuple，bool
 #. 自动生成api文档，并提供一个web页面可供查询和mock数据演示。
 #. 兼容 ``django`` , ``flask`` , ``bottle`` (如果不指定框架，默认按这个顺序识别框架)
-#. 自动生成接口\ ``骨架文件``\ 功能。
+#. 自动生成接口\ ``骨架文件``\ 功能（请谨慎开启）。
 #. 自定义格式转换器，data_format.datetime格式转换类；'2019-01-18 23:25:25' to datetime
 #. 多国语言支持，也支持自定义语言包。
 #. 文档热重载。
 #. 默认值支持方法函数。
 #. 支持url中包含参数，例如 ``/api/user/<id>``\ ，并且在配置methods参数的时候设置它的规则。
+#. 支持多url绑定一个接口
 
 **更新记录：**
 ------------------
 
 ..
+
+   2019-04-03 
+
+   var 1.7.3
+
+
+   * 添加支持多url绑定一个接口支持。
+     .. code-block:: python
+
+        {
+              'url': ['weixin','weixin/<name>/<id>'],
+              'class': 'business_code.views.test',
+              'name': '账户登录',
+              'methods': {
+                  'POST': [
+                      {'name': 'id', 'type': bool, 'required': True,'description': '用户id'},
+                      {'name': 'name', 'type': str, 'min':4,'required': True,'description': '用户name'}, 
+                  ],
+              }
+          },
 
    2019-03-15 
 

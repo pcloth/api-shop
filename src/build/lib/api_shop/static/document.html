@@ -102,6 +102,12 @@
                         <el-table-column sortable prop="url" :label="_('Url')"
                         :filters="url_type"
                         :filter-method="filterUrl">
+                        <tempalte slot-scope="scope">
+                            <span v-if="typeof scope.row.url==='string'">{{scope.row.url}}</span>
+                            <div v-else >
+                                <div style="width: 100%;background-color: antiquewhite;margin-top:5px;" v-for="(url,i) in scope.row.url" :key="`tb_url_${i}`">{{url}}</div>
+                            </div>
+                        </tempalte>
                         </el-table-column>
                     </el-table>
                 </el-aside>
@@ -116,11 +122,17 @@
                         </div>
                         <div class="flex-row">
                             <div class="flex-row-title">{{_('Url')}}</div>
-                            <div class="flex-row-content">
-                                <el-input id="api-url" v-show="currentApi.url" :value="baseUrl+currentApi.url">
+                            <div class="flex-row-content" v-show="currentApi.url">
+                                <el-input v-if="typeof currentApi.url==='string'" id="api-url" :value="baseUrl+currentApi.url">
                                     <el-button id="copy" slot="append" :data-clipboard-text="baseUrl+currentApi.url">{{_('copy')}}
                                     </el-button>
                                 </el-input>
+                                <tempalte v-else>
+                                    <el-input  id="api-url" v-for="(url,i) in currentApi.url" :value="baseUrl+url" :key="`url_${i}`">
+                                        <el-button id="copy" slot="append" :data-clipboard-text="baseUrl+url">{{_('copy')}}
+                                        </el-button>
+                                    </el-input>
+                                </tempalte>
                             </div>
                         </div>
                         <div class="flex-row">
@@ -324,8 +336,15 @@
                 },
 
                 mockTest(method, key) {
-                    let url = this.options.base_url + this.currentApi.url
-                    console.log('url',url)
+                    let api_url = ''
+                    if (typeof this.currentApi.url === 'string') {
+                        api_url = this.currentApi.url
+
+                    } else {
+                        api_url = this.currentApi.url[0]
+
+                    }
+                    let url = this.options.base_url + api_url;
                     this.$alert('请打开F12查看发送情况。', '提示')
                     let mapping = {
                         str: '@string',
@@ -352,13 +371,13 @@
                             if (method[i].type == 'str') val = `${val}("lower",${length})`;
                             if (method[i].type == 'int' || method[i].type == 'float') val = `${val}(${min},${max})`;
                             mockConf[method[i].name] = Mock.mock(val);
-                            
+
                         }
 
-                        if(mockConf[method[i].name] && url.indexOf(`<${method[i].name}>`)>=0){
+                        if (mockConf[method[i].name] && url.indexOf(`<${method[i].name}>`) >= 0) {
                             // console.log(method[i].name,mockConf[method[i].name])
-                            url = url.replace(`<${method[i].name}>`,mockConf[method[i].name])
-                            // console.log(url)
+                            url = url.replace(`<${method[i].name}>`, mockConf[method[i].name])
+                                // console.log(url)
                             mockConf[method[i].name] = undefined
                         }
 

@@ -337,12 +337,22 @@ class ApiShop():
             if type(conf[i]['class'])!=str:
                 # 直接使用对象
                 conf[i]['class'] = self.__class_to_json(conf[i]['class'])
-            self.url_dict.update({
-                conf[i]['url']: model,
-            })
-            self.url_methods.update({
-                conf[i]['url']: conf[i]['methods'],
-            })
+            if type(conf[i]['url']) == list:
+                # 支持多url表达方式
+                for url in conf[i]['url']:
+                    self.url_dict.update({
+                        url: model,
+                    })
+                    self.url_methods.update({
+                        url: conf[i]['methods'],
+                    })
+            else:
+                self.url_dict.update({
+                    conf[i]['url']: model,
+                })
+                self.url_methods.update({
+                    conf[i]['url']: conf[i]['methods'],
+                })
             conf[i]['methods'] = self.__class_to_json(conf[i]['methods'])
             
             if hasattr(model,'__doc__'):
