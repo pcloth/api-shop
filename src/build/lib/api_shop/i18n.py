@@ -22,7 +22,8 @@ class i18n_init():
             'Framework version is not compatible.': 'Framework version is not compatible.',
             'Not support': 'Not support',
             'supported framework as follows:': 'supported framework as follows:',
-            'Did not find the framework':'Did not find the framework. Please install ',
+            'Did not find the framework': 'Did not find the framework. Please install ',
+            'must be in the list of options':'must be in the list of options',
         },
         'zh': {
             'no attributes found': '没有找到属性：',
@@ -41,7 +42,8 @@ class i18n_init():
             'Framework version is not compatible.': 'api-shop不支持当前框架版本。',
             'Not support': '不支持',
             'supported framework as follows:': '支持的框架如下：',
-            'Did not find the framework':'没找指定的框架，请安装',
+            'Did not find the framework': '没找指定的框架，请安装',
+            'must be in the list of options':'必须在可选项列表中',
 
         }
     }

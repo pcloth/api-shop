@@ -20,9 +20,16 @@
 9. The default value supports method functions.
 10. Support url contains parameters, such as ```/api/user/<id>```, and set its rules when configuring the parameters parameter.
 11. Support multiple url binding an interface
+12. Support for options for specifying parameters, for example: [1,4,7], receiving a parameter other than this list will trigger bad_request
 
 
 ## **update record:**
+> 2019-04-03 
+>
+> var 1.8.0
+- Support for options for specifying parameters, for example: [1,4,7], receiving a parameter other than this list will trigger bad_request
+
+
 > 2019-04-03
 >
 > var 1.7.3
@@ -176,6 +183,7 @@ default | str,function | When not received, the default value, note that it will
 min | int,str | The minimum/minimum length, which is a string, is converted by the type converter specified by type.
 max | int,str | Maximum/maximum length, when a string is converted by the type converter specified by type.
 description | str | Description of the function, to see the contents of the document for the front-end personnel
+options | list | The value of the parameter must be in this list, for example: [1,4,7]. Receiving parameters outside this list will trigger bad_request
 
 4. Configuration
 ```python

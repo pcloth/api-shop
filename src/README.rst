@@ -38,11 +38,19 @@ api-shop
 #. 默认值支持方法函数。
 #. 支持url中包含参数，例如 ``/api/user/<id>``\ ，并且在配置methods参数的时候设置它的规则。
 #. 支持多url绑定一个接口
+#. 支持指定参数的可选项，例如：[1,4,7]，收到这个列表之外的参数就会触发bad_request
 
 **更新记录：**
 ------------------
 
 ..
+
+   2019-04-03 
+
+   var 1.8.0
+
+
+   * 支持指定参数的可选项，例如：[1,4,7]，收到这个列表之外的参数就会触发bad_request
 
    2019-04-03 
 
@@ -215,7 +223,7 @@ api-shop
    > 
    键 | 值类型 | 说明
    :----------- | :----------- | -----------:
-   url         | str        | 接口的url地址，只需要填写相对地址
+   url         | str,list        | 接口的url地址，只需要填写相对地址，如果有多条url，可以配置成`list`。支持url参数：`/api/url/<id>`
    class         | str,class        | 接口实际调用的业务类（继承至Api），可以是对象，也可以是引用地址
    name         | str        | 接口的名字
    methods         | dict        | 接口所能接收的methods：有GET POST DELETE PUT PATCH
@@ -231,6 +239,7 @@ api-shop
    min         | int,str        | 最小值/最小长度，为字符串时，会被type指定的类型转换器转换。
    max         | int,str        | 最大值/最大长度，为字符串时，会被type指定的类型转换器转换。
    description         | str        | 功能描述，给前端人员看文档的内容
+   options    | list | 参数必须在这个列表中的值，例如：[1,4,7]，收到这个列表之外的参数就会触发bad_request
 
    4. 配置
    ```python

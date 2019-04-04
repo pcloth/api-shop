@@ -15,9 +15,8 @@ conf = [
         'name': '微信账户登录',
         'methods': {
             'POST': [
-                {'name': 'username', 'type': str, 'required': True,
-                    'min': 3, 'max': 24, 'description': '用户名'},
-                {'name': 'ddd', 'type': str,   'description': '日期'},
+                {'name': 'username', 'type': str, 'required': True, 'min': 3, 'max': 24, 'description': '用户名', 'options':['a','bb','c_c']},
+                {'name': 'ddd', 'type': str,   'description': '日期','options':['2018-10-26']},
             ]
         }
     },
@@ -39,7 +38,7 @@ conf = [
 
 af = ApiShop(conf,
     {
-        'lang': 'zh',
+        # 'lang': 'zh',
         'name_classification': ['微信', '账户'],
         'url_classification': ['weixin', 'login'],
         'auto_create_folder': True,  # 自动创建文件夹
@@ -47,7 +46,7 @@ af = ApiShop(conf,
         'auto_create_class': True,  # 自动创建类
         'auto_create_method': True,  # 自动创建方法
         'framework': 'flask',
-        'bad_request':False,
+        # 'bad_request':False,
     })
 
 

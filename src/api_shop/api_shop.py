@@ -506,6 +506,7 @@ class ApiShop():
         min_ = conf.get('min')
         max_ = conf.get('max')
         default_ = conf.get('default')
+        options = conf.get('options')
         not_converting = False
 
         # 没有值得情况，包括'',[],()这种，但是要排除0，因为0经常用于标记值
@@ -548,10 +549,14 @@ class ApiShop():
         # 检查转换后的'',[],(),{}都放弃长度检查，0继续检查大小。
         if not value and value != 0:
             if required_:
-                return _('parameter')+' {} '.format(name)+_('can not be empty'), None,
+                return _('parameter')+' {} '.format(name)+_('can not be empty'), None
             else:
                 return None, value
-            
+        # 检查可选项目
+        if options and type(options)==list:
+            if value not in options:
+                return _('parameter') + ' {} '.format(name) + _('must be in the list of options') + ' : {}'.format(json.dumps(options)), None
+                
         # 检查最小值/长度
         if min_:
             if type_ in [str, list, dict, set]:
