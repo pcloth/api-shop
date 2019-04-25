@@ -150,6 +150,7 @@ ApiShop         | api初始化类        | 用以加载conf和options
 Api         | 业务继承类        | 用来继承后写实际的业务代码
 
 
+
 3. 初始化
 ``` python
 conf = [
@@ -313,7 +314,7 @@ urlpatterns = [
 from api_shop from Api
 
 class api_login(Api):
-    def post(self,request,data=None):
+    def post(self,request,data):
         '''api登陆接口，方便微信用户绑定账户'''
         username = data.username
         password = data.password
@@ -323,13 +324,13 @@ class api_login(Api):
             token = TokenBackend.make_token(user).decode('utf-8')
             return {'status': 'success', 'msg': '执行成功', 'token': token}
         
-        return {'status': 'error', 'msg': '用户登录失败'},400
+        return {'status': 'error', 'msg': '用户登录失败'},400 # 400如果省略，会默认200的http code
 ```
 
 
 
 
-2. [flask例子]
+1. [flask例子]
 ```python
 from flask import Flask,request,render_template_string
 
