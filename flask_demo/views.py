@@ -49,10 +49,14 @@ af = ApiShop(conf,
         # 'bad_request':False,
     })
 
+from src.api_shop import get_api_result_json
+from business_code.test.abc import api_login
+
 
 @simple_page.route('/api/<regex("([\s\S]*)"):url>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 def hello_world(url):
-    print(url)
+    print('flask:', get_api_result_json(api_login, 'POST', {}))
+
     if url == 'document/':
         return af.render_documents(request, url)
     if url == 'api_data':

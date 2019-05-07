@@ -45,6 +45,10 @@ af = ApiShop(conf,
         'framework':'bottle'
     })
 
+from src.api_shop import get_api_result_json
+from business_code.test.abc import api_login
+# get_api_result_json(api_class, method, data=None, request=None, not200=True)
+print('----->', get_api_result_json(api_login, 'POST'))
 
 @route('/api/<url:re:([\s\S]*)>',['GET','PUT','PATCH','DELETE','POST'])
 def api_index(url):

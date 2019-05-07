@@ -43,7 +43,9 @@ class i18n_init():
             'Not support': '不支持',
             'supported framework as follows:': '支持的框架如下：',
             'Did not find the framework': '没找指定的框架，请安装',
-            'must be in the list of options':'必须在可选项列表中',
+            'must be in the list of options': '必须在可选项列表中',
+            'request.method and method are not equal': 'request.method和method不相等',
+            'api-shop return result is not success.':'api-shop返回结果不成功。'
 
         }
     }

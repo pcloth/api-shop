@@ -37,7 +37,10 @@ conf = [
 
 af = ApiShop(conf)
 
-app_name='api'
+app_name = 'api'
+from src.api_shop import get_api_result_json
+from business_code.test.abc import api_login
+print('---',get_api_result_json(api_login,'POST',{}))
 
 urlpatterns = [
     path('api_data', af.get_api_data, name='api_data'),

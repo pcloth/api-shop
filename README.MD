@@ -23,8 +23,16 @@
 10. 支持url中包含参数，例如 `/api/user/<id>`，并且在配置methods参数的时候设置它的规则。
 11. 支持多url绑定一个接口
 12. 支持指定参数的可选项，例如：[1,4,7]，收到这个列表之外的参数就会触发bad_request
+13. 可以在代码中直接调用Api业务代码：`get_api_result_json`和`get_api_result_response`
 
 ## **更新记录：**
+> 2019-05-07 
+>
+> var 1.9.0
+- 添加代码复用方法：`get_api_result_json`和`get_api_result_response`
+- 可以直接调用api的返回值
+
+
 > 2019-04-03 
 >
 > var 1.8.0
@@ -148,6 +156,10 @@ from api_shop from ApiShop,Api,data_format
 :----------- | :-----------: | :-----------
 ApiShop         | api初始化类        | 用以加载conf和options
 Api         | 业务继承类        | 用来继承后写实际的业务代码
+DataFormat | 自定义数据继承类 | 用来写自定义数据格式
+get_api_result_json         | 直接调用业务类        | 返回 json,status_code
+get_api_result_response         | 直接调用业务类        | 返回response
+data_format | 内置自定义数据格式 | data_format.datetime 可以将一个字符串转换成datetime格式
 
 
 
