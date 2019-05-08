@@ -1,18 +1,18 @@
 module.exports = {
     base: '/api-shop/',
     title: 'api-shop',
-    description: '一个易用的、快速的restful-api接口工具包，兼容：`django` / `flask` / `bottle`。',
+    description: '一个易用的、快速的restful-api接口工具包，兼容：django / flask / bottle。',
     locales: {
         '/': {
             lang: 'zh-CN',
             title: 'api-shop',
-            description: '一个易用的、快速的restful-api接口工具包，兼容：`django` / `flask` / `bottle`。',
+            description: '一个易用的、快速的restful-api接口工具包，兼容：django / flask / bottle。',
 
         },
         '/en/': {
             lang: 'en-US',
             title: 'api-shop',
-            description: 'api-shop: An easy-to-use, fast restful-api interface toolkit compatible with `django` / `flask` / `bottle`.',
+            description: 'api-shop: An easy-to-use, fast restful-api interface toolkit compatible with django / flask / bottle.',
         }
     },
     themeConfig: {
