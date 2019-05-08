@@ -174,7 +174,8 @@ class api_login(Api):
 ## 方法组件
 ### get_api_result_json 方法
 ::: tip
-直接调用业务代码类，获取返回数据和状态码
+- 直接调用业务代码类，获取返回数据和状态码
+- 请注意：由于绕开了参数监测，所有参数都必须填写在data中，没有的用None填写
 :::
 #### flask 例子
 ``` python
@@ -205,7 +206,8 @@ def hello_world(url):
 
 ### get_api_result_response 方法
 ::: tip
-直接调用业务代码类，获取返回响应包response
+- 直接调用业务代码类，获取返回响应包response
+- 请注意：由于绕开了参数监测，所有参数都必须填写在data中，没有的用None填写
 :::
 #### flask 例子
 ``` python

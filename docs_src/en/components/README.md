@@ -176,7 +176,8 @@ class api_login(Api):
 ## Method components
 ### get_api_result_json method
 ::: tip
-Call the business code class directly to get the return data and status code
+- Call the business code class directly to get the return data and status code
+- Please note: All parameters must be filled in the data due to parameter monitoring bypassed.
 :::
 #### flask example
 ``` python
@@ -207,7 +208,8 @@ def hello_world(url):
 
 ### get_api_result_response method
 ::: tip
-Call the business code class directly, get the response packet response
+- Call the business code class directly, get the response packet response
+- Please note: All parameters must be filled in the data due to parameter monitoring bypassed.
 :::
 #### flask example
 ``` python
