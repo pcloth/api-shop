@@ -1,15 +1,15 @@
 ---
 home: true
-heroImage: /hero.png
+heroImage: /logo.png
 actionText: 快速上手 →
 actionLink: /start/
 features:
 - title: 简洁
   details: 根据一个list对象参数表来生成api接口。
-- title: 省心
-  details: 自动校验参数、自动转换参数格式、简化业务代码、自动生成文档和mock工具
+- title: 自动
+  details: 自动校验参数、自动转换参数格式、自动生成文档和mock工具
 - title: 省时
-  details: 外部和内部均可复用业务代码
+  details: 简化业务代码，外部和内部均可复用。一切只为少加班。
 footer: MIT Licensed | Copyright © 2019 Pcloth
 ---
 
