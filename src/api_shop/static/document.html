@@ -7,6 +7,10 @@
 <script src="https://cdn.bootcss.com/clipboard.js/2.0.4/clipboard.min.js"></script>
 <!-- ApiFactory -->
 <style>
+    body {
+        margin: 0;
+        background-color: #E9EEF3;
+    }
     @font-face {
         font-family: "iconfont";
         src: url('data:application/x-font-woff2;charset=utf-8;base64,d09GMgABAAAAAAPUAAsAAAAAB7QAAAOGAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHEIGVgCCZgqDSIMgATYCJAMICwYABCAFhG0HMBu8BlGUDUqV7IckyQMoPbwnQscgUIQECgAoAAAAG4B4+Nrvd+6+/YhYUo2iiUQiRPESSCQNldLpDNM1NDLJ3tZ0YUyFkDnPlqg11fQd+e/+XpoyzmM8wqEUQoJwHNnlfCC4+irkXhcAqtjxf+7n6yLt6SzvgucUWZSphQMc7/jOgKKLbB/og/GnvxwOrxqPru0E6gxpK+yY7E9Ql0G/QJyFawvqKaNckx9qhKqSqTnFLWI16Tq94Mb/+fiyGDUklQJw7x0sXBiXSYTJZTIvF0U0nh3iLApMA5nYLXXuKIWRaSV1+qSyHiBJUP7bf3gBUQVyG8AAiYTmeCaSU/7NBDJq8Qg89cpkZm2FOJ4Y0gJTsGSk4djisAOMQPJ+E6f8Ro7CSg6XlFJ0ROHQ0trWHC7lkKOUpYqzrLKxX6herHBwEM37TxdqFWkcrC9nL+HOZyuuhuSDmQnhFed8JqZ8gJ78+no0OsoiUdjYWMiUn89cUNDAmlR0jFBiTayQnE8oLIUUhwgu5SgtuoC5gElhBQoXR+kc8nlDijT2aamQMwCSS87479L0mUeM2iFkNxrhKF/klhDvY8be08PHKUYMO7VRJRlKRNytkrwyJrTWuQ2HdpIsEpGdse17Xz0LqsyKjko7bbEbZuakVAqX9bX3/LIMJoR5Fhp6hNGuFSqEpIp5KoEspDwXSk6qhm/o4ImXf6W5cu/tOxfl6PazJZGJPeijIzJnj/fxSFQocoqwG0VozM6huLqcbxm8FOra2hkGLqqaGpu2jRvtHYwiZvWm5qbW2qIWMAbK77Kw+BHiH7efh0/HfN/mle+a+gxedeGTL2hHztyg5h5dwW+ql3P5Q5YkYEhZE9QUBpJH5O9AXkf9lADeNr++7k4Q20ONJMKQVBuEQo1hdMZPQ0W9ZahSYx3qTFnNrteOlUSuxaQngtDiDUmTJyi0+KAz/gsVXf5QpSUKqLMf7UvWG41jim08WUIu2g/0HZMoZpFmkH8gnUcWJyU+9UKc+X4cyMhl4ytKiMcYkV31UEShYhPjEu1GUWQwZROQI11PJB31ZEPKPtR1TAxN2xixCOJCtgfkcxgJ5VYXzdz3D4iWi1i4pqzOe0FYxm8cDXT1W6BXyqRV2bXckrnShoRQkMKMGFoiO4loxEBpeacAcYgur0coNdIjlVRbZXd+dfx0a6AO6FLQdoWqw3DxchsAAAA=') format('woff2');
@@ -14,7 +18,7 @@
     
     .iconfont {
         font-family: "iconfont" !important;
-        font-size: 32px;
+        font-size: 18px;
         color: #333;
         font-style: normal;
         -webkit-font-smoothing: antialiased;
@@ -24,17 +28,26 @@
     .icon-github:before {
         content: "\f01ca";
     }
-    
-    .el-header,
+    /* .el-header,
     .el-footer {
-        background-color: #B3C0D1;
-        color: #333;
+        line-height: 1;
+        height: 70px;
+        background-color: #fff;
+        margin-bottom: 20px;
+        justify-content: center;
+    } */
+    
+    .el-aside .el-table th,
+    .el-aside .el-table tr {
+        background-color: #D3DCE6;
+    }
+    
+    .el.el-header {
         text-align: center;
-        height: 60px;
-        line-height: 1.5;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+    }
+    
+    .el-footer {
+        margin-top: 20px;
     }
     
     .el-aside {
@@ -76,21 +89,22 @@
     
     .color-line {
         height: 5px;
-        background-color: #B3C0D1;
+        background-color: rgb(179, 209, 205);
     }
 </style>
 <div id="app">
     <template>
-        <el-container>
-            <el-header style="line-height:1.5;">
-                <div>
-                    <h2>api-shop {{options.version}}</h2>
-                </div>
-                <a href="https://github.com/pcloth/api-shop" target="_blank" :title="_('View api-shop documentation')"><span
-                        class="iconfont icon-github"></span></a>
-            </el-header>
+        <el-container style="    height: 100%;">
             <el-container>
                 <el-aside width="300px">
+                    <img src="https://pcloth.github.io/api-shop/logo.png" alt="logo" style="margin-top:20px">
+                    <h4>ver: {{options.version}}
+                            <a href="https://pcloth.github.io/api-shop/" target="_blank" :title="_('View api-shop documentation')">
+                                <i class="el-icon-document" style="font-size: 18px;color: #000;"></i>
+                            </a>
+                            <a href="https://github.com/pcloth/api-shop" target="_blank" :title="_('Access code repository')"><span
+                                    class="iconfont icon-github"></span></a>
+                    </h4>
                     <h5>{{_('api count')}}: {{apiList.length}}</h5>
                     <el-table highlight-current-row ref="type"  :data="apiList" style="width: 100%"
                     
@@ -105,11 +119,12 @@
                         <tempalte slot-scope="scope">
                             <span v-if="typeof scope.row.url==='string'">{{scope.row.url}}</span>
                             <div v-else >
-                                <div style="width: 100%;background-color: antiquewhite;margin-top:5px;" v-for="(url,i) in scope.row.url" :key="`tb_url_${i}`">{{url}}</div>
+                                <div style="width: 100%;margin-top:5px;" v-for="(url,i) in scope.row.url" :key="`tb_url_${i}`">{{url}}</div>
                             </div>
                         </tempalte>
                         </el-table-column>
                     </el-table>
+                    
                 </el-aside>
                 <el-main>
                     <el-row>
@@ -199,7 +214,7 @@
 </el-row>
 </el-main>
 </el-container>
-<el-footer> writed by pcloth@gmail.com</el-footer>
+<!-- <el-footer> writed by pcloth@gmail.com</el-footer> -->
 </el-container>
 </template>
 </div>
@@ -219,6 +234,7 @@
                         zh: {
                             'api count': '当前api数量',
                             'View api-shop documentation': '查看api-shop文档',
+                            'Access code repository':'访问代码仓库',
                             'Name': '接口名',
                             'Url': '地址',
                             'Main document': '主文档',

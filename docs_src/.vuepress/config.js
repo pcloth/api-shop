@@ -21,7 +21,7 @@ module.exports = {
         searchMaxSuggestions: 10,
         locales: {
             '/': {
-                selectText: '选择语言',
+                selectText: 'Languages',
                 label: '简体中文',
                 editLinkText: '在 GitHub 上编辑此页',
                 serviceWorker: {
