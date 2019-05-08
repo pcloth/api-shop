@@ -56,7 +56,7 @@ class FW(Namespace):
             'json_status_code_in_func':True,
             'http': 'HttpResponse',
             'http_status_code_in_func':True,
-            'template':'HttpResponse'
+            'template': 'HttpResponse'
         },
         'flask': {
             'json': 'jsonify',
@@ -155,8 +155,97 @@ class FW(Namespace):
 api = ApiInit()
 
 
+
 class ApiDataClass(Namespace):
     pass
+    def dict(self):
+        return self.__dict__
+    
+    def to_dict(self):
+        return self.__dict__
+
+    def get_json(self):
+        return self.__dict__
+
+    def is_ajax(self):
+        return False
+
+def get_api_result_json(api_class, method, data=None, request=None, not200=True):
+    '''
+    直接调用api代码，并拿到返回json
+        api_class 是业务api类的对象（不是实例）
+        method 是请求方法,str格式
+        data 是附加数据，dict格式
+        request=None 是当前request,如果method和request.method不相同，请自己封装一个适合业务代码用的request，如果业务代码不用reqeust，请不要传入。
+        not200=True 是允许status_code不等于200的结果，为False的时候，遇到200以外程序中断并抛错
+    return json,status_code
+
+    '''
+    response = get_api_result_response(api_class, method, data,request,not200)
+    if not response:
+        # 无结果
+        return None
+    
+    status_code = getattr(response, 'status_code')
+    if not200==False and status_code!=200:
+        raise BaseException(_('api-shop return result is not success.'))
+
+    fw = api.get('framework')
+    fwname = fw.get('name')
+    
+    if fwname == 'flask':
+        if hasattr(response,'is_json') and response.is_json:
+            ret = response.get_json()
+        else:
+            ret = None
+
+    if fwname == 'django':
+        if response.content:
+            ret = json.loads(response.content)
+        else:
+            ret = None
+    if fwname == 'bottle':
+        ret = response.body
+
+    return ret,status_code
+
+def get_api_result_response(api_class, method, data=None, request=None, not200=True):
+    '''
+    绕过参数检查调用 api业务代码
+    返回response
+    api_class 是业务api类的对象（不是实例）
+    method 是请求方法,str格式
+    data 是附加数据，dict格式
+    request=None 是当前request，业务代码如果不使用，可以不传递
+    not200=True 是允许status_code不等于200的结果，为False的时候，遇到200以外程序中断并抛错
+    返回值是 response
+    '''
+    d_ = ApiDataClass()
+    if data:
+        d_.update(data)
+
+    fw = api.get('framework')
+    fwname = fw.get('name')
+
+    if request:
+        if request.method != method:
+            raise BaseException(_('request.method and method are not equal'))
+    else:
+        request = ApiDataClass()
+        request.method = method
+    
+    
+    tup = api_class(request,d_)
+
+    if type(tup) == tuple:
+        status_code = tup[1]
+        res = tup[0]
+    elif hasattr(tup,'status_code'):
+        res = tup
+        status_code = getattr(tup, 'status_code')
+    if not200==False and status_code!=200:
+        raise BaseException(_('api-shop return result is not success.'))
+    return res
 
 def return_response(msg=None, status_code=400):
     # 返回错误信息
@@ -185,11 +274,11 @@ class Api():
         def patch(self,request,data):
             # 同上
     '''
-    def __new__(self,request,data=None):
+    def __new__(self, request, data=None):
         method = request.method.lower()
-        if hasattr(self,method):           
+        if hasattr(self, method):
             func = getattr(self,method)
-            retdata = func(self,request,data)
+            retdata = func(self, request, data)
             status_code = 200
             if type(retdata)==tuple:
                 ret = retdata[0]
