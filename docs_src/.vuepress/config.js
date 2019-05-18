@@ -1,5 +1,6 @@
 module.exports = {
     base: '/api-shop/',
+    dest: '../docs',
     title: 'api-shop',
     description: '一个易用的、快速的restful-api接口工具包，兼容：django / flask / bottle。',
     locales: {
