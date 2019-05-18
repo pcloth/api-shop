@@ -1,6 +1,7 @@
 # api-shop
 
 ## [Online Documents](https://pcloth.github.io/api-shop/index.html)
+## [在线文档](https://pcloth.github.io/api-shop/index.html)
 
 > ### api-shop：一个易用的、快速的restful-api接口工具包，兼容：`django` / `flask` / `bottle`。
 > ### `一切只为少加班。`
@@ -28,5 +29,6 @@
 
 
 ## [Online Documents](https://pcloth.github.io/api-shop/index.html)
+## [在线文档](https://pcloth.github.io/api-shop/index.html)
 
 
