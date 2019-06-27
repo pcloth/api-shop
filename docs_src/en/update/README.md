@@ -1,4 +1,14 @@
 # changelog
+
+---
+> 2019-06-27
+>
+> var 1.9.1
+- Add `debug` parameter, default is True
+- If the business code fails to load after opening, an error will be thrown and the program will be interrupted.
+---
+
+
 ---
 > 2019-05-07
 >

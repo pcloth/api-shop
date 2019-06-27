@@ -17,7 +17,7 @@ setup(
     name='api-shop',
     version=version,
     description=(
-        'RESTful api shop for django or flask'
+        'RESTful api shop for django or flask or bottle'
     ),
     long_description=desc,
     author='pcloth',

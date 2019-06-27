@@ -89,8 +89,8 @@ auto_create_folder | bool | False | Automatically create folder
 auto_create_file | bool | False | Automatically create files
 auto_create_class | bool | False | Automatically create class
 auto_create_method | bool | False | Automatically create method
-Framework | str | None | Manually specify the framework, currently supports django, flask, bottle, if not specified, the framework will be identified in order, if multiple frames are installed at the same time, please specify manually.
-
+framework | str | None | Manually specify the framework, currently supports django, flask, bottle, if not specified, the framework will be identified in order, if multiple frames are installed at the same time, please specify manually.
+debug | bool | True | An error was thrown when loading the api business code.
 
 
 

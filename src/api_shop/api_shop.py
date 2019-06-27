@@ -11,6 +11,7 @@ from .i18n import i18n_init
 from .__init__ import __version__
 from .url_parse import parse_rule
 from .autofill import auto_fill,check_fill_methods
+from werkzeug.local import LocalStack, LocalProxy
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 i18 = i18n_init('zh')
@@ -39,7 +40,7 @@ class FW(Namespace):
     # 就可以加载django的JsonResponse方法
     framework_models = {
         'django': {
-            'django.http': ['JsonResponse','HttpResponse']
+            'django.http': ['JsonResponse', 'HttpResponse'],
         },
         'flask': {
             'flask': ['render_template_string','jsonify']
@@ -149,6 +150,8 @@ class FW(Namespace):
                 raise BaseException(_('Did not find the framework') + fwname)
 
         self.func_dict = self.framework_return.get(self.name)
+       
+        
         
             
 
@@ -329,7 +332,7 @@ class ApiShop():
                 'bad_request_error_status':'error',
                 'document': BASE_DIR + '/api_shop/static/document.html',  # 文档路由渲染的模板
                 'lang': 'en',
-                
+                'debug':True, # 默认开启调试信息
                 'auto_create_folder': False,  # 自动创建文件夹
                 'auto_create_file': False,  # 自动创建文件
                 'auto_create_class': False,  # 自动创建类
@@ -353,6 +356,7 @@ class ApiShop():
 
         # 指定框架
         api.framework = FW(self.options.get('framework'))
+
         # 扩展语言包
         if type(self.options.get('lang_pack'))==dict:
             self.i18n.lang.update(self.options.get('lang_pack'))
@@ -403,19 +407,18 @@ class ApiShop():
         components = name.split('.')
         path = '.'.join(components[:-1])
         try:
-            mod = __import__(path)
-            for comp in components[1:]:
-                mod = getattr(mod,comp)
-            return mod
-        except:
-            try:
-                exec('from {} import {}'.format(path, components[-1]))
-                return eval(components[-1])
-            except:
-                # 无法加载
-                if auto_fill(thisconf, self.options) == True:
-                    # 自动生成文件或者方法，成功后重试一次。
-                    return self.__dynamic_import(thisconf)
+            exec('from {} import {}'.format(path, components[-1]))
+            return eval(components[-1])
+        except Exception as ie:
+            if self.options.get('debug') == True:
+                print('\n\n*******  api-shop errmsg  *******\n')
+                print('currnet_api:\nurl: {}\nclass: {}\n'.format(thisconf.get('url'),thisconf.get('class')))
+                traceback.print_exc()
+                os._exit(0)
+            if auto_fill(thisconf, self.options) == True:
+                # 自动生成文件或者方法，成功后重试一次。
+                return self.__dynamic_import(thisconf)
+
             
 
     def __make_model(self, conf):

@@ -1,39 +1,25 @@
 Metadata-Version: 1.1
 Name: api-shop
-Version: 1.9.0
-Summary: RESTful api shop for django or flask
+Version: 1.9.1
+Summary: RESTful api shop for django or flask or bottle
 Home-page: https://github.com/pcloth/api-shop
 Author: pcloth
 Author-email: pcloth@gmail.com
 License: BSD License
 Description-Content-Type: UNKNOWN
-Description: 
-        api-shop
-        ========
+Description: api-shop v1.9.1
+        ===============
         
         `Online Documents <https://pcloth.github.io/api-shop/index.html>`_
-        ----------------------------------------------------------------------
+        ------------------------------------------------------------------
         
-        ..
+        api-shop：一个易用的、快速的restful-api接口工具包，兼容：django / flask / bottle
         
-           api-shop：一个易用的、快速的restful-api接口工具包，兼容：\ ``django`` / ``flask`` / ``bottle``\ 。
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        
-           ``一切只为少加班。``
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-        
-        
-        **demo 图片**
-        -----------------
-        
-        
-        .. image:: /static/demo.png
-           :target: /static/demo.png
-           :alt: demo
+        一切只为少加班。
         
         
         **核心功能：**
-        ------------------
+        --------------
         
         
         #. 配置化api生成。
@@ -51,7 +37,7 @@ Description:
         #. 可以在代码中直接调用Api业务代码：\ ``get_api_result_json``\ 和\ ``get_api_result_response``
         
         `Online Documents <https://pcloth.github.io/api-shop/index.html>`_
-        ----------------------------------------------------------------------
+        ------------------------------------------------------------------
         
 Keywords: api-shop,Flask-RESTful,Django REST framework,RESTful
 Platform: all

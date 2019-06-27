@@ -91,6 +91,7 @@ auto_create_file | bool | False | 自动创建文件
 auto_create_class | bool | False | 自动创建类
 auto_create_method | bool | False | 自动创建方法
 framework | str | 无 | 手动指定框架，目前支持django、flask、bottle，如果不指定，将按顺序识别框架，如果同时安装了多个框架，请手动指定。
+debug | bool | True | 加载api业务代码的时候，遇到错误抛出。
 
 ### ApiShop options lang_pack 说明
 #### ApiShop options lang_pack 例子

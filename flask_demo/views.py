@@ -46,7 +46,7 @@ af = ApiShop(conf,
         'auto_create_class': True,  # 自动创建类
         'auto_create_method': True,  # 自动创建方法
         'framework': 'flask',
-        # 'bad_request':False,
+        # 'debug':False,
     })
 
 from src.api_shop import get_api_result_json
