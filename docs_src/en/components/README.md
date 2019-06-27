@@ -85,10 +85,10 @@ lang | str | en | Multi-language support, currently built in en, zh
 lang_pack | dict | None | Extended language pack if you want api-shop to support more languages
 name_classification | list | none | used for default document templates to filter interface names for easy searching
 url_classification | list | None | Used by the default document template to filter the interface url for easy searching. Example: 'url_classification':['weixin', 'login']
-auto_create_folder | bool | False | Automatically create folder
-auto_create_file | bool | False | Automatically create files
-auto_create_class | bool | False | Automatically create class
-auto_create_method | bool | False | Automatically create method
+auto_create_folder | bool | False | Automatically create folder. The debug parameter must also be True to take effect.
+auto_create_file | bool | False | Automatically create files. The debug parameter must also be True to take effect.
+auto_create_class | bool | False | Automatically create class. The debug parameter must also be True to take effect.
+auto_create_method | bool | False | Automatically create method. The debug parameter must also be True to take effect.
 framework | str | None | Manually specify the framework, currently supports django, flask, bottle, if not specified, the framework will be identified in order, if multiple frames are installed at the same time, please specify manually.
 debug | bool | True | An error was thrown when loading the api business code.
 
