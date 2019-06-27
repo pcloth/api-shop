@@ -8,6 +8,7 @@ api-shop：一个易用的、快速的restful-api接口工具包，兼容：djan
 
 一切只为少加班。
 
+.. image:: https://pcloth.github.io/api-shop/assets/img/demo.7342f254.png
 
 **核心功能：**
 --------------

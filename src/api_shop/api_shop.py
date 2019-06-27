@@ -414,10 +414,11 @@ class ApiShop():
                 print('\n\n*******  api-shop errmsg  *******\n')
                 print('currnet_api:\nurl: {}\nclass: {}\n'.format(thisconf.get('url'),thisconf.get('class')))
                 traceback.print_exc()
-                os._exit(0)
-            if auto_fill(thisconf, self.options) == True:
-                # 自动生成文件或者方法，成功后重试一次。
-                return self.__dynamic_import(thisconf)
+                if auto_fill(thisconf, self.options) == True:
+                    # 自动生成文件或者方法，成功后重试一次。
+                    return self.__dynamic_import(thisconf)
+                else:
+                    os._exit(0)
 
             
 
