@@ -18,7 +18,7 @@ conf = [
         }
     },
     {
-        'url': 'test',
+        'url': ['test/alkdjflasjdf/aljdfalf','test2','three/user'],
         'class': 'business_code.views.test',
         'name': '测试数据',
         'methods': {

@@ -6,3 +6,4 @@ build/
 *.pyc
 __pycache__/
 node_modules/
+src_template/
