@@ -99,6 +99,7 @@
 
     .row {
         display: flex;
+        flex: 1 1 100%;
         padding: 0px 10px;
         height: 2rem;
         line-height: 2rem;
@@ -143,11 +144,27 @@
                     </h4>
                     <h5>{{_('api count')}}: {{apiList.length}}</h5>
                     <div class="api-list">
-                        <div class="row>">
-                            {{url_type}}
+                        <div class="row" style="margin-bottom: 20px;">
+                            <div class="col">
+                                <el-select v-model="seleledName" filterable placeholder="请选择">
+                                    <el-option :label="_('Name')" value=""></el-option>
+                                    <el-option v-for="item in name_type" :key="`name-type-${item.value}`"
+                                        v-if="item.text" :label="item.text" :value="item.value">
+                                    </el-option>
+                                </el-select>
+                            </div>
+                            <div class="col">
+                                <el-select v-model="seleledUrl" filterable placeholder="请选择">
+                                    <el-option :label="_('Url')" value=""></el-option>
+                                    <el-option v-for="item in url_type" :key="`url-type-${item.value}`" v-if="item.text"
+                                        :label="item.text" :value="item.value">
+                                    </el-option>
+                                </el-select>
+                            </div>
                         </div>
+
                         <div class="row" :class="{selected:$route.params.idx==idx}" v-for="(api,idx) in apiList"
-                            :style="typeof api.url==='string'?'':`height:${api.url.length*2}rem;`"
+                            :style="typeof api.url==='string'?'':`height:${api.url.length*2}rem;`" v-show="filter(api)"
                             @click="viewDocument(idx)" :key="`api-menu-${idx}`">
                             <div class="col">{{api.name}}</div>
                             <div class="col" v-if="typeof api.url==='string'">{{api.url}}</div>
@@ -158,35 +175,15 @@
                             </div>
                         </div>
                     </div>
-                    <!-- <el-table highlight-current-row ref="type" :data="apiList" style="width: 100%"
-                        @row-click="viewDocument">
-                        <el-table-column sortable prop="name" :label="_('Name')" :filters="name_type"
-                            :filter-method="filterName">
-                        </el-table-column>
-                        <el-table-column sortable prop="url" :label="_('Url')" :filters="url_type"
-                            :filter-method="filterUrl">
-                            <div slot-scope="scope">
-                                <span v-if="typeof scope.row.url==='string'">{{scope.row.url}}</span>
-                                <div v-else>
-                                    <div style="width: 100%;margin-top:5px;" v-for="(url,i) in scope.row.url"
-                                        :key="`tb_url_${i}`">{{url}}</div>
-                                </div>
-                            </div>
-                        </el-table-column>
-                    </el-table> -->
-
                 </el-aside>
                 <el-main>
                     <router-view></router-view>
                 </el-main>
             </el-container>
-            <!-- <el-footer> writed by pcloth@gmail.com</el-footer> -->
         </el-container>
     </template>
 </div>
 <script>
-
-
     var data = {
         apiList: [],
 
@@ -218,6 +215,7 @@
             'description': '描述',
             'Mock Test': '模拟测试',
             'default': '默认值',
+            'options':'可选项'
         },
         en: {
             'api count': 'api count',
@@ -238,13 +236,14 @@
             'description': 'description',
             'Mock Test': 'Mock Test',
             'default': 'default',
+            'options':'options'
         }
     }
 
 
     const interface = {
-        name:'interface',
-        template: `<el-row><el-row v-if="currentApi">\
+        name: 'interface',
+            template: `<el-row><el-row v-if="currentApi">\
             <div class="flex-row">\
                 <div class="flex-row-title">{{_('Name')}} </div>\
                 <div class="flex-row-content">\
@@ -272,7 +271,7 @@
                 </div>\
             </div>\
             <div class="flex-row">\
-                <div class="flex-row-title">{{_('Main document')}}{{idx}}</div>\
+                <div class="flex-row-title">{{_('Main document')}}</div>\
                 <div class="flex-row-content">\
                     <el-input readonly type="textarea" autosize v-model="currentApi.document">\
                     </el-input>\
@@ -316,6 +315,13 @@
                                     </el-table-column>\
                                     <el-table-column prop="default" :label="_('default')">\
                                     </el-table-column>\
+                                    <el-table-column prop="options" :label="_('options')">\
+                                        <template slot-scope="scope">\
+                                            <div v-if="scope.row.options">\
+                                                <el-tag style="margin-right:10px;" v-for="(item,i) in scope.row.options" :key="i">{{item}}</el-tag>\
+                                            </div>\
+                                        </template>\
+                                    </el-table-column>\
                                     <el-table-column prop="min" :label="_('minimum')" width="120">\
                                     </el-table-column>\
                                     <el-table-column prop="max" :label="_('maximum')" width="120">\
@@ -335,132 +341,137 @@
                 </div>\
             </div>\
         </el-row></el-row>`,
-        props: ['idx'],
+            props: ['idx'],
 
-        data() {
-            return {
-                test: 'ceshi',
-                currentApi: {},
-                testData: {},
-                ttt: 0
-                // i18n:i18n
-            }
-        },
-        computed: {
-            // 计算属性的 getter
-            testString() {
-                return JSON.stringify(this.testData);
-            },
-            apiList() {
-                // this.ttt
-                return data.apiList;
-            },
+            data() {
+                return {
+                    test: 'ceshi',
+                    currentApi: {},
+                    testData: {},
+                    ttt: 0,
 
-            options() {
-                // this.ttt
-                return data.options;
+                    // i18n:i18n
+                }
             },
-            baseUrl() {
-                // this.ttt
-                return data.baseUrl;
+            computed: {
+                // 计算属性的 getter
+                testString() {
+                    return JSON.stringify(this.testData);
+                },
+                apiList() {
+                    // this.ttt
+                    return data.apiList;
+                },
+
+                options() {
+                    // this.ttt
+                    return data.options;
+                },
+                baseUrl() {
+                    // this.ttt
+                    return data.baseUrl;
+                },
+                name_type() {
+                    // this.ttt
+                    return data.name_type;
+                },
+                url_type() {
+                    // this.ttt
+                    return data.url_type;
+                },
             },
-            name_type() {
-                // this.ttt
-                return data.name_type;
-            },
-            url_type() {
-                // this.ttt
-                return data.url_type;
-            },
-        },
-        updated() {
-            this.readApi();
-        },
-        mounted() {
-            this.$nextTick(_ => {
+            updated() {
                 this.readApi();
-            });
-        },
-        methods: {
-            _(text) {
-                let lang = data.options.lang ? data.options.lang : 'en'
-                return i18n[lang][text] ? i18n[lang][text] : text;
             },
-            readApi(idx) {
-                if (!data.apiList || data.apiList.length == 0) {
-                    setTimeout(this.readApi, 500);
-                }
-                this.testData = Mock.mock({
-                    "string|1-10": "★"
-                });
-                this.currentApi = data.apiList[this.idx];
+            mounted() {
+                this.readApi();
+                // this.$nextTick(_ => {
+                    
+                // });
             },
-            mockTest(method, key) {
-                let api_url = ''
-                if (typeof this.currentApi.url === 'string') {
-                    api_url = this.currentApi.url
+            methods: {
+                _(text) {
+                    let lang = data.options.lang ? data.options.lang : 'en'
+                    return i18n[lang][text] ? i18n[lang][text] : text;
+                },
+                readApi() {
+                    console.log(this.idx,'>>>')
+                    if (!data.apiList || data.apiList.length == 0) {
+                        setTimeout(this.readApi, 500);
+                    }
+                    this.testData = Mock.mock({
+                        "string|1-10": "★"
+                    });
+                    this.currentApi = data.apiList[this.idx];
+                },
+                mockTest(method, key) {
+                    let api_url = ''
+                    if (typeof this.currentApi.url === 'string') {
+                        api_url = this.currentApi.url
 
-                } else {
-                    api_url = this.currentApi.url[0]
-
-                }
-                let url = this.options.base_url + api_url;
-                this.$alert('请打开F12查看发送情况。', '提示')
-                let mapping = {
-                    str: '@string',
-                    int: '@integer',
-                    float: '@float',
-                    bool: '@boolean',
-                    list: '@range',
-                    set: '@range',
-                    "api_shop.data_format.datetime": '@datetime'
-                }
-                let mockConf = {}
-                for (let i in method) {
-
-                    if (method[i].value) {
-                        mockConf[method[i].name] = method[i].value;
-                    } else if (!method[i].required) {
-                        continue;
                     } else {
-                        let min = method[i].min ? method[i].min : 1;
-                        let max = method[i].max ? method[i].max : 20;
-                        let length = getRandomInt(min, max);
-                        let val = mapping[method[i].type] ? mapping[method[i].type] : '@character'
-                        if (method[i].type == 'list' || method[i].type == 'set') val = `${val}(${length})`;
-                        if (method[i].type == 'str') val = `${val}("lower",${length})`;
-                        if (method[i].type == 'int' || method[i].type == 'float') val = `${val}(${min},${max})`;
-                        mockConf[method[i].name] = Mock.mock(val);
+                        api_url = this.currentApi.url[0]
 
                     }
-
-                    if (mockConf[method[i].name] && url.indexOf(`<${method[i].name}>`) >= 0) {
-                        // console.log(method[i].name,mockConf[method[i].name])
-                        url = url.replace(`<${method[i].name}>`, mockConf[method[i].name])
-                        // console.log(url)
-                        mockConf[method[i].name] = undefined
+                    let url = this.options.base_url + api_url;
+                    this.$alert('请打开F12查看发送情况。', '提示')
+                    let mapping = {
+                        str: '@string',
+                        int: '@integer',
+                        float: '@float',
+                        bool: '@boolean',
+                        list: '@range',
+                        set: '@range',
+                        "api_shop.data_format.datetime": '@datetime'
                     }
+                    let mockConf = {}
+                    for (let i in method) {
 
-                }
-                console.log('发送mock数据包', mockConf, key)
+                        if (method[i].value) {
+                            mockConf[method[i].name] = method[i].value;
+                        } else if (!method[i].required) {
+                            continue;
+                        } else {
+                            let min = method[i].min ? method[i].min : 1;
+                            let max = method[i].max ? method[i].max : 20;
+                            let length = getRandomInt(min, max);
+                            let val = mapping[method[i].type] ? mapping[method[i].type] : '@character'
+                            if (method[i].type == 'list' || method[i].type == 'set') val = `${val}(${length})`;
+                            if (method[i].type == 'str') val = `${val}("lower",${length})`;
+                            if (method[i].type == 'int' || method[i].type == 'float') val = `${val}(${min},${max})`;
+                            mockConf[method[i].name] = Mock.mock(val);
 
-                if (key == 'GET' || key == 'DELETE') mockConf = {
-                    params: mockConf
-                };
+                        }
 
-                axios[key.toLowerCase()](url, mockConf).then(res => {
-                    console.log('mock数据访问api成功：', res);
-                }).catch(error => {
-                    console.log('mock数据访问api失败：', error);
-                })
+                        if (mockConf[method[i].name] && url.indexOf(`<${method[i].name}>`) >= 0) {
+                            // console.log(method[i].name,mockConf[method[i].name])
+                            url = url.replace(`<${method[i].name}>`, mockConf[method[i].name])
+                            // console.log(url)
+                            mockConf[method[i].name] = undefined
+                        }
 
+                    }
+                    console.log('发送mock数据包', mockConf, key)
+
+                    if (key == 'GET' || key == 'DELETE') mockConf = {
+                        params: mockConf
+                    };
+
+                    axios[key.toLowerCase()](url, mockConf).then(res => {
+                        console.log('mock数据访问api成功：', res);
+                    }).catch(error => {
+                        console.log('mock数据访问api失败：', error);
+                    })
+
+                },
             },
-        },
     }
 
-    const routes = [
-        { path: '/interface/:idx', component: interface, props: true },
-    ]
+    const routes = [{
+        path: '/interface/:idx',
+        component: interface,
+        props: true
+    }, ]
 
 
     const router = new VueRouter({
@@ -501,6 +512,8 @@
                 testData: {},
                 currentApi: {},
                 i18n: i18n,
+                seleledName: '',
+                seleledUrl: ''
             }
         },
         computed: {
@@ -559,8 +572,10 @@
                         data.apiList = res.data.data;
                         data.options = res.data.options;
 
-                        if (data.options.name_classification) this.make_filter_data('name_type', data.options.name_classification);
-                        if (data.options.url_classification) this.make_filter_data('url_type', data.options.url_classification);
+                        if (data.options.name_classification) this.make_filter_data('name_type', data.options
+                            .name_classification);
+                        if (data.options.url_classification) this.make_filter_data('url_type', data.options
+                            .url_classification);
                         this.ttt += 1;
                     })
                     .catch((error) => {
@@ -572,20 +587,34 @@
             make_filter_data(obj, data) {
                 data[obj] = [];
                 for (let i in data) {
-                    this[obj].push({
-                        text: data[i],
-                        value: data[i]
-                    })
+                    if (typeof data[i] === 'string') {
+                        this[obj].push({
+                            text: data[i],
+                            value: data[i]
+                        })
+                    }
                 }
             },
-            filterName(value, row) {
-                return row.name.indexOf(value) >= 0;
+            
+            filter(api) {
+                if (!this.seleledName && !this.seleledUrl) return true;
+                if (this.seleledName && api.name.indexOf(this.seleledName) >= 0) return true;
+                if (this.seleledUrl) {
+                    if (typeof api.url === 'string') {
+                        if (api.url.indexOf(this.seleledUrl) >= 0) return true;
+                    } else {
+                        for (let i in api.url) {
+                            if (api.url[i].indexOf(this.seleledUrl) >= 0) return true;
+                        }
+                    }
+                }
+                return false;
             },
-            filterUrl(value, row) {
-                return row.url.indexOf(value) >= 0;
-            },
+
             viewDocument(api) {
+                console.log('route')
                 this.$router.push('/interface/' + api)
+                this.$forceUpdate();
             },
 
 
@@ -596,7 +625,5 @@
     // Vue.prototype.$ELEMENT = { size: 'mini'};
 
     const app = new Vue(Main).$mount('#app')
-
-
 </script>
 <!-- {% endverbatim %} -->
