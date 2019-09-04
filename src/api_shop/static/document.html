@@ -105,7 +105,12 @@
         line-height: 2rem;
         cursor: pointer;
     }
-
+    .row-title {
+        /* margin-bottom: 20px; */
+        display: flex;
+        flex: 1 1 100%;
+        padding: 5px;
+    }
     .row.selected {
         background-color: #c6e2ff;
         pointer-events: none;
@@ -144,7 +149,7 @@
                     </h4>
                     <h5>{{_('api count')}}: {{apiList.length}}</h5>
                     <div class="api-list">
-                        <div class="row" style="margin-bottom: 20px;">
+                        <div class="row-title">
                             <div class="col">
                                 <el-select v-model="seleledName" filterable placeholder="请选择">
                                     <el-option :label="_('Name')" value=""></el-option>
@@ -353,41 +358,35 @@
                     // i18n:i18n
                 }
             },
+            watch: {
+                '$route' (to, from) {
+                    this.readApi();
+                }
+            },
             computed: {
                 // 计算属性的 getter
                 testString() {
                     return JSON.stringify(this.testData);
                 },
                 apiList() {
-                    // this.ttt
                     return data.apiList;
                 },
 
                 options() {
-                    // this.ttt
                     return data.options;
                 },
                 baseUrl() {
-                    // this.ttt
                     return data.baseUrl;
                 },
-                name_type() {
-                    // this.ttt
-                    return data.name_type;
-                },
-                url_type() {
-                    // this.ttt
-                    return data.url_type;
-                },
-            },
-            updated() {
-                this.readApi();
+                // name_type() {
+                //     return data.name_type;
+                // },
+                // url_type() {
+                //     return data.url_type;
+                // },
             },
             mounted() {
                 this.readApi();
-                // this.$nextTick(_ => {
-                    
-                // });
             },
             methods: {
                 _(text) {
@@ -395,7 +394,6 @@
                     return i18n[lang][text] ? i18n[lang][text] : text;
                 },
                 readApi() {
-                    console.log(this.idx,'>>>')
                     if (!data.apiList || data.apiList.length == 0) {
                         setTimeout(this.readApi, 500);
                     }
@@ -518,21 +516,16 @@
         },
         computed: {
             // 计算属性的 getter
-            testString() {
-                return JSON.stringify(this.testData);
-            },
+            // testString() {
+            //     return JSON.stringify(this.testData);
+            // },
             apiList() {
                 this.ttt
                 return data.apiList;
             },
-
             options() {
                 this.ttt
                 return data.options;
-            },
-            baseUrl() {
-                this.ttt
-                return data.baseUrl;
             },
             name_type() {
                 this.ttt
@@ -548,6 +541,7 @@
             this.getApi();
 
         },
+
         mounted() {
             var clipboard = new ClipboardJS('#copy');
             let that = this;
@@ -612,9 +606,7 @@
             },
 
             viewDocument(api) {
-                console.log('route')
                 this.$router.push('/interface/' + api)
-                this.$forceUpdate();
             },
 
 
