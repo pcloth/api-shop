@@ -57,6 +57,7 @@
         background-color: #D3DCE6;
         color: #333;
         text-align: center;
+        width: 30%;
     }
 
     .el-main {
@@ -95,15 +96,14 @@
         background-color: rgb(179, 209, 205);
     }
 
-    .api-list {}
-
     .row {
         display: flex;
         flex: 1 1 100%;
         padding: 0px 10px;
-        height: 2rem;
+        border-bottom: 1px solid #f3f5f9;
         line-height: 2rem;
         cursor: pointer;
+        flex-wrap:wrap;
     }
     .row-title {
         /* margin-bottom: 20px; */
@@ -137,7 +137,7 @@
     <template>
         <el-container style="    height: 100%;">
             <el-container>
-                <el-aside width="300px">
+                <el-aside  :style="`width:${options.menu_width?options.menu_width:25}%;`">
                     <img src="https://pcloth.github.io/api-shop/logo.png" alt="logo" style="margin-top:20px">
                     <h4>ver: {{options.version}}
                         <a href="https://pcloth.github.io/api-shop/" target="_blank"
@@ -151,7 +151,7 @@
                     <div class="api-list">
                         <div class="row-title">
                             <div class="col">
-                                <el-select v-model="seleledName" filterable placeholder="请选择">
+                                <el-select v-model="seleledName" allow-create filterable placeholder="请选择">
                                     <el-option :label="_('Name')" value=""></el-option>
                                     <el-option v-for="item in name_type" :key="`name-type-${item.value}`"
                                         v-if="item.text" :label="item.text" :value="item.value">
@@ -159,7 +159,7 @@
                                 </el-select>
                             </div>
                             <div class="col">
-                                <el-select v-model="seleledUrl" filterable placeholder="请选择">
+                                <el-select v-model="seleledUrl" allow-create filterable placeholder="请选择">
                                     <el-option :label="_('Url')" value=""></el-option>
                                     <el-option v-for="item in url_type" :key="`url-type-${item.value}`" v-if="item.text"
                                         :label="item.text" :value="item.value">
@@ -169,7 +169,7 @@
                         </div>
 
                         <div class="row" :class="{selected:$route.params.idx==idx}" v-for="(api,idx) in apiList"
-                            :style="typeof api.url==='string'?'':`height:${api.url.length*2}rem;`" v-show="filter(api)"
+                             v-show="filter(api)"
                             @click="viewDocument(idx)" :key="`api-menu-${idx}`">
                             <div class="col">{{api.name}}</div>
                             <div class="col" v-if="typeof api.url==='string'">{{api.url}}</div>
@@ -220,7 +220,7 @@
             'description': '描述',
             'Mock Test': '模拟测试',
             'default': '默认值',
-            'options':'可选项'
+            'options':'可选项',
         },
         en: {
             'api count': 'api count',

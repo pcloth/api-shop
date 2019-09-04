@@ -4,7 +4,7 @@
 ---
 > 2019-09-04 
 >
-> var 1.9.3
+> var 1.9.4
 - Refactoring the document template page, adding front-end routing support, and the url contains the current interface information for easy communication.
 ---
 

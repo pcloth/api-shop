@@ -1,13 +1,13 @@
 Metadata-Version: 1.1
 Name: api-shop
-Version: 1.9.3
+Version: 1.9.4
 Summary: RESTful api shop for django or flask or bottle
 Home-page: https://github.com/pcloth/api-shop
 Author: pcloth
 Author-email: pcloth@gmail.com
 License: BSD License
 Description-Content-Type: UNKNOWN
-Description: api-shop v1.9.3
+Description: api-shop v1.9.4
         ===============
         
         `Online Documents <https://pcloth.github.io/api-shop/index.html>`_

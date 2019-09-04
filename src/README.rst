@@ -1,4 +1,4 @@
-api-shop v1.9.3
+api-shop v1.9.4
 ===============
 
 `Online Documents <https://pcloth.github.io/api-shop/index.html>`_
