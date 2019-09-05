@@ -1,5 +1,12 @@
 # changelog
 
+---
+> 2019-09-05
+>
+> var 1.9.5
+- Optimize the documentation page to add full-text search capabilities.
+---
+
 
 ---
 > 2019-09-04 

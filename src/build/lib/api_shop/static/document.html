@@ -99,18 +99,21 @@
     .row {
         display: flex;
         flex: 1 1 100%;
-        padding: 0px 10px;
+        margin: 0px 5px;
+        padding: 0px 5px;
         border-bottom: 1px solid #f3f5f9;
         line-height: 2rem;
         cursor: pointer;
-        flex-wrap:wrap;
+        flex-wrap: wrap;
     }
+
     .row-title {
         /* margin-bottom: 20px; */
         display: flex;
         flex: 1 1 100%;
         padding: 5px;
     }
+
     .row.selected {
         background-color: #c6e2ff;
         pointer-events: none;
@@ -137,7 +140,7 @@
     <template>
         <el-container style="    height: 100%;">
             <el-container>
-                <el-aside  :style="`width:${options.menu_width?options.menu_width:25}%;`">
+                <el-aside :style="`width:${options.menu_width?options.menu_width:25}%;`">
                     <img src="https://pcloth.github.io/api-shop/logo.png" alt="logo" style="margin-top:20px">
                     <h4>ver: {{options.version}}
                         <a href="https://pcloth.github.io/api-shop/" target="_blank"
@@ -149,9 +152,15 @@
                     </h4>
                     <h5>{{_('api count')}}: {{apiList.length}}</h5>
                     <div class="api-list">
+                        <div class="row-title" >
+                            <el-autocomplete style="width: 100%" v-model="state" :fetch-suggestions="querySearch"
+                                :placeholder="_('research all')" :trigger-on-focus="false" @select="handleSelect">
+                                <template slot="prepend"><i class="el-icon-search"></i></template>
+                            </el-autocomplete>
+                        </div>
                         <div class="row-title">
                             <div class="col">
-                                <el-select v-model="seleledName" allow-create filterable placeholder="请选择">
+                                <el-select  style="width: 100%" v-model="seleledName" allow-create filterable placeholder="请选择">
                                     <el-option :label="_('Name')" value=""></el-option>
                                     <el-option v-for="item in name_type" :key="`name-type-${item.value}`"
                                         v-if="item.text" :label="item.text" :value="item.value">
@@ -159,7 +168,7 @@
                                 </el-select>
                             </div>
                             <div class="col">
-                                <el-select v-model="seleledUrl" allow-create filterable placeholder="请选择">
+                                <el-select  style="width: 100%" v-model="seleledUrl" allow-create filterable placeholder="请选择">
                                     <el-option :label="_('Url')" value=""></el-option>
                                     <el-option v-for="item in url_type" :key="`url-type-${item.value}`" v-if="item.text"
                                         :label="item.text" :value="item.value">
@@ -169,8 +178,7 @@
                         </div>
 
                         <div class="row" :class="{selected:$route.params.idx==idx}" v-for="(api,idx) in apiList"
-                             v-show="filter(api)"
-                            @click="viewDocument(idx)" :key="`api-menu-${idx}`">
+                            v-show="filter(api)" @click="viewDocument(idx)" :key="`api-menu-${idx}`">
                             <div class="col">{{api.name}}</div>
                             <div class="col" v-if="typeof api.url==='string'">{{api.url}}</div>
                             <div class="col" style="flex-direction: column;" v-else>
@@ -220,7 +228,13 @@
             'description': '描述',
             'Mock Test': '模拟测试',
             'default': '默认值',
-            'options':'可选项',
+            'options': '可选项',
+            'research all':'全文搜索',
+            'send mock request:':'发送模拟请求：',
+            'response':'response响应',
+            'Prompt message':'提示信息',
+            'Please press F12 to check the delivery status.':'请按下F12查看发送情况。'
+
         },
         en: {
             'api count': 'api count',
@@ -241,7 +255,8 @@
             'description': 'description',
             'Mock Test': 'Mock Test',
             'default': 'default',
-            'options':'options'
+            'options': 'options',
+            'research all':'research all'
         }
     }
 
@@ -282,12 +297,11 @@
                     </el-input>\
                 </div>\
             </div>\
-            <div v-if="currentApi.methods">\
-                <div v-for="(method,key) in currentApi.methods" :key="key">\
-                    <div class="color-line"></div>\
-                    <div class="flex-row">\
-                        <div class="flex-row-title">{{key}}</div>\
-                        <div class="flex-row-content">\
+            <!--v-model="activeName" @tab-click="handleClick" -->\
+            <div class="color-line"></div>\
+            <el-tabs v-if="currentApi.methods" v-model="activeName" type="border-card">\
+                <el-tab-pane :label="key" :name="idx.toString()" v-for="(method,key,idx) in currentApi.methods" :key="key">\
+                    <div class="flex-row-content">\
                             <div class="flex-row">\
                                 <div class="flex-row-title" style="width:150px;">\
                                     <el-button type="primary" style="float: left;margin: 10px 0;"\
@@ -342,15 +356,14 @@
                                 </el-table>\
                             </div>\
                         </div>\
-                    </div>\
-                </div>\
-            </div>\
+                </el-tab-pane>\
+            </el-tabs>\
         </el-row></el-row>`,
             props: ['idx'],
 
             data() {
                 return {
-                    test: 'ceshi',
+                    // test: '',
                     currentApi: {},
                     testData: {},
                     ttt: 0,
@@ -359,7 +372,7 @@
                 }
             },
             watch: {
-                '$route' (to, from) {
+                '$route'(to, from) {
                     this.readApi();
                 }
             },
@@ -401,6 +414,7 @@
                         "string|1-10": "★"
                     });
                     this.currentApi = data.apiList[this.idx];
+                    this.activeName = '0'
                 },
                 mockTest(method, key) {
                     let api_url = ''
@@ -412,7 +426,7 @@
 
                     }
                     let url = this.options.base_url + api_url;
-                    this.$alert('请打开F12查看发送情况。', '提示')
+                    this.$alert(this._('Please press F12 to check the delivery status.'), this._('Prompt message'))
                     let mapping = {
                         str: '@string',
                         int: '@integer',
@@ -449,16 +463,16 @@
                         }
 
                     }
-                    console.log('发送mock数据包', mockConf, key)
+                    console.info(this._('send mock request:'),key, mockConf)
 
                     if (key == 'GET' || key == 'DELETE') mockConf = {
                         params: mockConf
                     };
 
                     axios[key.toLowerCase()](url, mockConf).then(res => {
-                        console.log('mock数据访问api成功：', res);
+                        console.info(this._('response:'),res);
                     }).catch(error => {
-                        console.log('mock数据访问api失败：', error);
+                        console.error(error);
                     })
 
                 },
@@ -505,20 +519,16 @@
         router,
         data() {
             return {
-                // apiCount: 100,
                 ttt: 0,
                 testData: {},
                 currentApi: {},
                 i18n: i18n,
                 seleledName: '',
-                seleledUrl: ''
+                seleledUrl: '',
+                state: '',
             }
         },
         computed: {
-            // 计算属性的 getter
-            // testString() {
-            //     return JSON.stringify(this.testData);
-            // },
             apiList() {
                 this.ttt
                 return data.apiList;
@@ -578,6 +588,42 @@
 
 
             },
+            querySearch(queryString, cb) {
+                let res = []
+                for (let i in this.apiList) {
+                    // 开始搜索
+                    let index = null;
+                    if (
+                        this.apiList[i].name.includes(queryString) ||
+                        this.apiList[i].url.includes(queryString) ||
+                        (this.apiList[i].document && this.apiList[i].document.includes(queryString))
+                    ) {
+                        index = i
+                    }
+
+                    if (index === null) {
+                        for (let key in this.apiList[i].methods_documents) {
+                            if (this.apiList[i].methods_documents[key] && this.apiList[i].methods_documents[key]
+                                .includes(queryString)) {
+                                index = i
+                                break
+                            }
+                        }
+                    }
+
+                    if (index !== null) {
+                        res.push({
+                            value: this.apiList[i].name,
+                            index: i
+                        })
+
+                    }
+                }
+                cb(res)
+            },
+            handleSelect(item) {
+                this.$router.push('/interface/' + item.index)
+            },
             make_filter_data(obj, data) {
                 data[obj] = [];
                 for (let i in data) {
@@ -589,7 +635,7 @@
                     }
                 }
             },
-            
+
             filter(api) {
                 if (!this.seleledName && !this.seleledUrl) return true;
                 if (this.seleledName && api.name.indexOf(this.seleledName) >= 0) return true;
@@ -614,7 +660,6 @@
 
         }
     }
-    // Vue.prototype.$ELEMENT = { size: 'mini'};
 
     const app = new Vue(Main).$mount('#app')
 </script>
