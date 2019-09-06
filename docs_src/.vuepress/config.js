@@ -72,4 +72,7 @@ module.exports = {
 
 
     },
+    plugins: {'baidu-tongji': {
+        hm: '55405a77e01b4d671e84dd45880905a2'
+      }}
 }
