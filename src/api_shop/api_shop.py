@@ -160,7 +160,11 @@ api = ApiInit()
 
 
 class ApiDataClass(Namespace):
-    pass
+    '''api-data类'''
+    def __init__(self, data=None):
+        if data:
+            self.update(data)
+
     def dict(self):
         return self.__dict__
     
@@ -223,9 +227,7 @@ def get_api_result_response(api_class, method, data=None, request=None, not200=T
     not200=True 是允许status_code不等于200的结果，为False的时候，遇到200以外程序中断并抛错
     返回值是 response
     '''
-    d_ = ApiDataClass()
-    if data:
-        d_.update(data)
+    d_ = ApiDataClass(data)
 
     fw = api.get('framework')
     fwname = fw.get('name')
@@ -234,7 +236,7 @@ def get_api_result_response(api_class, method, data=None, request=None, not200=T
         if request.method != method:
             raise BaseException(_('request.method and method are not equal'))
     else:
-        request = ApiDataClass()
+        request = ApiDataClass(data)
         request.method = method
     
     
@@ -420,8 +422,6 @@ class ApiShop():
                 else:
                     os._exit(0)
 
-            
-
     def __make_model(self, conf):
         # 将字符串里的function模块和函数加载进来，并写入到run_function字段方便调用。
         for i in range(len(conf)):
@@ -467,7 +467,6 @@ class ApiShop():
         # 如果找不到业务模块
         return return_response(_('no such interface'))
 
-
     def __find_api_function(self, url):
         # 查找api所指向的模块
         if (type(url) == tuple and len(url) > 0):
@@ -479,6 +478,7 @@ class ApiShop():
 
     def __find_api_methons(self, url):
         # 查找api所指向的方法
+        print(url,'__find_api_methons')
         return self.url_methods.get(url)
 
     def __find_url_rule(self, url):
@@ -505,7 +505,6 @@ class ApiShop():
             else:
                 return key, value_dict
         return None,None
-
 
     def __init_url_rules(self):
         # _converter_args_re = re.compile(r'''
@@ -549,7 +548,6 @@ class ApiShop():
                 'key':rule
             })
     
-
     def get_parameter(self, request):
         # 获取参数
         data = {}
@@ -590,8 +588,7 @@ class ApiShop():
                 data.update(request.json)
 
         return data
-
-        
+      
     def __verify(self, conf, name, value):
         # 校验数据并转换格式
         required_ = conf.get('required')
@@ -615,12 +612,17 @@ class ApiShop():
         if required_ == True and not value and value!=0:
             return _('parameter')+' {} '.format(name)+_('is required'), None
 
+        if value == '' and type_ != str:
+            # 如果是空字符串，但是要求类型不是字符串，就转换成None
+            value = None
+            
         # 检查空值，这个时候因为有些空值还处于字符串形态，比如'[]'，所以有可能会被跳过        
         if not value and value != 0:
             if required_:
                 return _('parameter')+' {} '.format(name)+_('can not be empty'), None,
             else:
                 return None, value
+        
             
         # 检查并转换类型
         if not_converting==False and type_ and type(value) != type_:
@@ -720,8 +722,6 @@ class ApiShop():
             # 如果文档发生变化，读取文档。
             self.document = open(self.document_name, mode='r', encoding='utf-8').read()
         return api.framework.template(self.document)
-
-
  
     def get_api_data(self, request, *url):
         '''返回给文档页面数据'''

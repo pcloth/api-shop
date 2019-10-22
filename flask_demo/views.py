@@ -2,7 +2,7 @@
 
 from flask import Blueprint,  request
 
-from src.api_shop import ApiShop, Api, data_format
+from src.api_shop import ApiShop, Api, data_format,ApiDataClass
 
 
 simple_page = Blueprint('simple_page', __name__,
@@ -26,7 +26,7 @@ conf = [
         'name': '账户登录',
         'methods': {
             'POST': [
-                {'name': 'id', 'type': bool, 'required': True,'description': '用户id'},
+                {'name': 'id', 'type': str, 'description': '用户id'},
                 {'name': 'name', 'type': str, 'min':4,'required': True,'description': '用户name'}, 
             ],
         }
@@ -52,7 +52,8 @@ af = ApiShop(conf,
 from src.api_shop import get_api_result_json
 from business_code.test.abc import api_login
 
-
+a = ApiDataClass({'test': 1})
+print('>>>',a)
 @simple_page.route('/api/<regex("([\s\S]*)"):url>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 def hello_world(url):
     print('flask:', get_api_result_json(api_login, 'POST', {}))
