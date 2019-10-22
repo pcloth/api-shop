@@ -478,7 +478,6 @@ class ApiShop():
 
     def __find_api_methons(self, url):
         # 查找api所指向的方法
-        print(url,'__find_api_methons')
         return self.url_methods.get(url)
 
     def __find_url_rule(self, url):

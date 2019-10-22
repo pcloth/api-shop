@@ -3,7 +3,7 @@
 ---
 > 2019-10-22 
 >
-> var 1.9.6
+> var 1.9.7
 - Fault Tolerance: When the current end parameter is an empty string, the parameter type!=str is automatically converted to None; when the parameter type==str, the empty string is reserved.
 ---
 
