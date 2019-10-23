@@ -1,4 +1,5 @@
 # 快速上手
+![PyPI](https://img.shields.io/pypi/v/api-shop?logo=api-shop) ![PyPI - Downloads](https://img.shields.io/pypi/dm/api-shop)
 
 ## 安装
 ```sh

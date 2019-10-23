@@ -13,6 +13,8 @@ features:
 footer: MIT Licensed | Copyright © 2019 Pcloth
 ---
 
+![PyPI](https://img.shields.io/pypi/v/api-shop?logo=api-shop) ![PyPI - Downloads](https://img.shields.io/pypi/dm/api-shop)
+
 ## **核心功能：**
 1. 配置化api生成。
 2. 自动校验request提交的数据，并转换成指定格式，支持：int，float，list，dict，set，tuple，bool

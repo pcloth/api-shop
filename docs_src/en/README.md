@@ -13,6 +13,8 @@ features:
 footer: MIT Licensed | Copyright © 2019 Pcloth
 ---
 
+![PyPI](https://img.shields.io/pypi/v/api-shop?logo=api-shop) ![PyPI - Downloads](https://img.shields.io/pypi/dm/api-shop)
+
 ## **core function:**
 1. Configuration api generation.
 2. Automatically verify the data submitted by the request and convert it to the specified format, supporting: int, float, list, dict, set, tuple, bool

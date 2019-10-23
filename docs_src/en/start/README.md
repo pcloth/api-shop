@@ -1,5 +1,7 @@
 # Quick Start
 
+![PyPI](https://img.shields.io/pypi/v/api-shop?logo=api-shop) ![PyPI - Downloads](https://img.shields.io/pypi/dm/api-shop)
+
 ## installation
 ```sh
 sudo pip install api-shop
