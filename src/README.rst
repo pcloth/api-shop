@@ -27,6 +27,7 @@ api-shop：一个易用的、快速的restful-api接口工具包，兼容：djan
 #. 支持多url绑定一个接口
 #. 支持指定参数的可选项，例如：[1,4,7]，收到这个列表之外的参数就会触发bad_request
 #. 可以在代码中直接调用Api业务代码：\ ``get_api_result_json``\ 和\ ``get_api_result_response``
+#. 快速将ORM模具导出到json数据，也可以直接用dict数据更新ORM模具。
 
 `Online Documents <https://pcloth.github.io/api-shop/index.html>`_
 ------------------------------------------------------------------

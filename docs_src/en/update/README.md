@@ -1,6 +1,13 @@
 # changelog
 
 ---
+> 2020-02-04
+>
+> var 1.10.1
+- Added func.model.dumps, func.model.loads, func.model.models_to_list methods for exporting ORM instance data to json and updating from dict to ORM instance
+---
+
+---
 > 2019-10-22 
 >
 > var 1.9.7

@@ -11,4 +11,6 @@ api_shop.egg-info/PKG-INFO
 api_shop.egg-info/SOURCES.txt
 api_shop.egg-info/dependency_links.txt
 api_shop.egg-info/top_level.txt
+api_shop/func/__init__.py
+api_shop/func/model.py
 api_shop/static/document.html

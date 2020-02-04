@@ -1,4 +1,10 @@
 # 更新记录
+---
+> 2020-02-04 
+>
+> var 1.10.1
+- 添加func.model.dumps、func.model.loads、func.model.models_to_list方法，用于导出ORM实例数据为json和从dict更新到ORM实例
+---
 
 ---
 > 2019-10-22 

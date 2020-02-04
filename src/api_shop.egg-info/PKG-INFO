@@ -1,13 +1,12 @@
-Metadata-Version: 1.2
+Metadata-Version: 1.1
 Name: api-shop
-Version: 1.9.7
+Version: 1.10.1
 Summary: RESTful api shop for django or flask or bottle
 Home-page: https://github.com/pcloth/api-shop
 Author: pcloth
 Author-email: pcloth@gmail.com
-Maintainer: pcloth
-Maintainer-email: pcloth@gmail.com
 License: BSD License
+Description-Content-Type: UNKNOWN
 Description: api-shop v1.9.5
         ===============
         
@@ -37,6 +36,7 @@ Description: api-shop v1.9.5
         #. 支持多url绑定一个接口
         #. 支持指定参数的可选项，例如：[1,4,7]，收到这个列表之外的参数就会触发bad_request
         #. 可以在代码中直接调用Api业务代码：\ ``get_api_result_json``\ 和\ ``get_api_result_response``
+        #. 快速将ORM模具导出到json数据，也可以直接用dict数据更新ORM模具。
         
         `Online Documents <https://pcloth.github.io/api-shop/index.html>`_
         ------------------------------------------------------------------
@@ -53,4 +53,6 @@ Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.4
 Classifier: Programming Language :: Python :: 3.5
 Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
 Classifier: Topic :: Software Development :: Libraries

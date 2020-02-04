@@ -29,3 +29,4 @@ footer: MIT Licensed | Copyright © 2019 Pcloth
 11. 支持多url绑定一个接口
 12. 支持指定参数的可选项，例如：[1,4,7]，收到这个列表之外的参数就会触发bad_request
 13. 可以在代码中直接调用Api业务代码：`get_api_result_json`和`get_api_result_response`
+14. 快速将ORM模具导出到json数据（`func.model.dumps`和`func.model.models_to_list`），也可以直接用dict数据更新ORM模具（`func.model.loads`）。

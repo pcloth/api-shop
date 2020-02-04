@@ -230,6 +230,53 @@ def hello_world(url):
 Same as the `get_api_result_json` method, but the return value of `get_api_result_response` is a response
 :::
 
+## func.model extended functions
+
+### func.model.loads write dict data to ORM stencil
+::: tip
+
+The loads method accepts two parameters:
+
+     @model_obj ORM mold object instance
+
+     @dict_data The dict data that needs to be updated
+
+:::
+### func.model.dumps Convert the data of ORM mold to json format
+::: tip
+The dumps method receives the following parameters:
+
+     @model_obj data stencil
+     @exclude does not process fields in the list
+         Default exclude = ['_sa_instance_state', 'password_hash', '_state', 'password']
+         Output password fields are not processed by default
+     @include outputs only the fields in the list
+     @string directly converted to string format
+     @func default output attribute method in stencil class
+    
+:::
+### loads and dumps usage example
+```python
+from api_shop import func,Api
+from models import Users
+class users(Api):
+    def get(self, request, data):
+        user = Users.query.filter(Users.id == data.id).first()
+        ret = func.models.dumps(user) # Convert ORM data to json format for front-end use.
+        print(ret)
+        return {'user':ret}
+    def post(self, request, data):
+        user = Users.query.filter(Users.id == data.id).first()
+
+        func.models.loads(user, data) # Append the data contained in data to the user
+
+        user.save()
+```
+
+### func.model.models_to_list convert the query ORM instance list into a json list
+::: tip
+Equivalent to [func.model.dumps (x) for x in models]
+:::
 
 ## data_format Expansion
 ::: tip Data format extension

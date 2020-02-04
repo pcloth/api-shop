@@ -29,3 +29,4 @@ footer: MIT Licensed | Copyright © 2019 Pcloth
 11. Support multiple url binding an interface
 12. Support for options for specifying parameters, for example: [1,4,7], receiving a parameter other than this list will trigger bad_request
 13. The Api business code can be called directly in the code: `get_api_result_json` and `get_api_result_response`
+14. Quickly export the ORM mold to json data (`func.model.dumps` and `func.model.models_to_list`), or you can directly update the ORM mold (` func.model.loads`) with dict data.

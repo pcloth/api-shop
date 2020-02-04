@@ -1,5 +1,6 @@
 # 业务模块，flask和django写法一样
 from src.api_shop import Api
+from src.api_shop.func import model
 
 class api_login(Api):
     def post(self,request,data=None):
@@ -10,7 +11,6 @@ class api_login(Api):
 
 class test(Api):
     def get(self, request, data=None):
-        pass
         print(data)
         a={'a':2 ,'b':6}
         # return
