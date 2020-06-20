@@ -302,7 +302,46 @@ conf = [
 ```
 #### When submitting the request, the incoming time parameter will be converted to datetime format, and check whether it is greater than or equal to January 1, 2018, less than or equal to December 31, 2019.
 
-### data_format.DataExpansion
+### data_format.regex regular format check
+The uploaded string will be checked regularly.
+Call method:
+```python
+from src.api_shop import data_format
+
+conf = [
+    {
+        'url':'test',
+        'class':'business_code.views.api_test',
+        'name':'Test interface',
+        'methods': {
+            'POST': [
+                {'name':'email',
+                    'type': data_format.regex(
+                        r'^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){0,4}@[a-zA-Z0-9_-]+(\.[ a-zA-Z0-9_-]+){0,4}$',name='mailbox'),
+                    'required': True,
+                    'min': 6,
+                    'max': 24,
+                    'description':'Mailbox'
+                },
+                {'name':'idcard','type': data_format.idcard,'required': True,'description':'ID card'},
+            ]
+        }
+    },
+]
+```
+
+### Built-in more fast regular check
+-data_format.numeric numeric string
+-email
+-data_format.chinese in Chinese
+-data_format.url url format
+-data_format.cellphone mobile number
+-data_format.idcard ID number
+
+
+
+
+### data_format.DataExpansion custom data type
 ``` python
 from api_shop.data_format import DataExpansion
 from datetime import datetime as dt
@@ -310,13 +349,14 @@ from datetime import datetime as dt
 class datetime(object,metaclass=DataExpansion):
     '''Convert str to datetime format'''
     
-    class_name = "<class 'data_format.datetime'>"
+    class_name = "<class'data_format.datetime'>"
 
     def __new__(self, string):
-        if ':' in string:
-            return dt.strptime(string, '%Y-%m-%d %H:%M:%S')
+        if':' in string:
+            return dt.strptime(string,'%Y-%m-%d %H:%M:%S')
         else:
-            return dt.strptime(string, '%Y-%m-%d')
+            return dt.strptime(string,'%Y-%m-%d')
 ```
-
-#### When inheriting, please follow the above method, inherit from the metaclass, and use the __new__ method to return a new format.
+::: tip
+When inheriting, please follow the above writing, inherit as a metaclass, and directly use the __new__ method to return a new format
+:::

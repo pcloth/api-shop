@@ -2,7 +2,8 @@ from django.urls import path,re_path
 
 from . import views
 
-from src.api_shop import ApiShop,Api
+from src.api_shop import ApiShop, Api
+from src.api_shop import data_format
 
 
 conf = [
@@ -12,8 +13,9 @@ conf = [
         'name': '账户登录',
         'methods': {
             'POST': [
-                {'name':'username', 'type': str, 'required': True, 'min': 3, 'max': 24, 'description': '用户名'},
-                {'name':'password', 'type': str, 'required': True, 'min': 3, 'max': 24, 'description': '密码'},
+                {'name': 'username', 'type': data_format.regex(
+                    r'^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){0,4}@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){0,4}$',name='邮箱'), 'required': True, 'min': 3, 'max': 24, 'description': '用户名'},
+                {'name':'password', 'type': data_format.idcard, 'required': True, 'description': '密码'},
             ]
         }
     },
@@ -36,7 +38,8 @@ conf = [
 ]
 
 af = ApiShop(conf, {
-    'framework':'django',
+    'framework': 'django',
+    'lang': 'zh'
 })
 
 app_name = 'api'

@@ -1,26 +1,42 @@
-Metadata-Version: 1.1
+Metadata-Version: 1.2
 Name: api-shop
-Version: 1.10.2
+Version: 1.11.0
 Summary: RESTful api shop for django or flask or bottle
 Home-page: https://github.com/pcloth/api-shop
 Author: pcloth
 Author-email: pcloth@gmail.com
+Maintainer: pcloth
+Maintainer-email: pcloth@gmail.com
 License: BSD License
-Description-Content-Type: UNKNOWN
-Description: api-shop v1.9.5
-        ===============
+Description: 
+        api-shop  
+        
+        
+        =============================================================================================================================================================================================================================================================================================
         
         `Online Documents <https://pcloth.github.io/api-shop/index.html>`_
-        ------------------------------------------------------------------
+        ----------------------------------------------------------------------
         
-        api-shop：一个易用的、快速的restful-api接口工具包，兼容：django / flask / bottle
+        `在线文档 <https://pcloth.github.io/api-shop/index.html>`_
+        --------------------------------------------------------------
         
-        一切只为少加班。
+        .. api-shop：一个易用的、快速的restful-api接口工具包，兼容：\ ``django`` / ``flask`` / ``bottle``\ 。
+          
         
-        .. image:: https://pcloth.github.io/api-shop/assets/img/demo.7342f254.png
+        .. ``一切只为少加班。``
+        
+        
+        **demo 图片**
+        -----------------
+        
+        
+        .. image:: /static/demo.png
+           :target: /static/demo.png
+           :alt: demo
+        
         
         **核心功能：**
-        --------------
+        ------------------
         
         
         #. 配置化api生成。
@@ -29,6 +45,7 @@ Description: api-shop v1.9.5
         #. 兼容 ``django`` , ``flask`` , ``bottle`` (如果不指定框架，默认按这个顺序识别框架)
         #. 自动生成接口\ ``骨架文件``\ 功能（请谨慎开启）。
         #. 自定义格式转换器，data_format.datetime格式转换类；'2019-01-18 23:25:25' to datetime
+        #. 支持正则格式校验。
         #. 多国语言支持，也支持自定义语言包。
         #. 文档热重载。
         #. 默认值支持方法函数。
@@ -36,10 +53,13 @@ Description: api-shop v1.9.5
         #. 支持多url绑定一个接口
         #. 支持指定参数的可选项，例如：[1,4,7]，收到这个列表之外的参数就会触发bad_request
         #. 可以在代码中直接调用Api业务代码：\ ``get_api_result_json``\ 和\ ``get_api_result_response``
-        #. 快速将ORM模具导出到json数据，也可以直接用dict数据更新ORM模具。
         
         `Online Documents <https://pcloth.github.io/api-shop/index.html>`_
-        ------------------------------------------------------------------
+        ----------------------------------------------------------------------
+        
+        `在线文档 <https://pcloth.github.io/api-shop/index.html>`_
+        --------------------------------------------------------------
+        
 Keywords: api-shop,Flask-RESTful,Django REST framework,RESTful
 Platform: all
 Classifier: Development Status :: 4 - Beta

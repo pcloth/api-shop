@@ -1,5 +1,19 @@
 # 更新记录
 ---
+> 2020-06-20 
+>
+> var 1.11.0
+- 添加了data_format下的regex 正则格式校验
+- data_format.numeric 数字型字符串
+- email 邮箱
+- data_format.chinese 中文
+- data_format.url url格式
+- data_format.cellphone 手机号码
+- data_format.idcard 身份证号码
+---
+
+
+---
 > 2020-02-04 
 >
 > var 1.10.1

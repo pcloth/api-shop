@@ -653,10 +653,10 @@ class ApiShop():
                 
         # 检查最小值/长度
         if min_:
-            if type_ in [str, list, dict, set]:
+            if type(value) in [str, list, dict, set]:
                 if len(value) < min_:
                     return _('parameter')+' {} '.format(name)+_('minimum length')+' {} '.format(min_), None
-            elif type_ in [int, float, complex]:
+            elif type(value) in [int, float, complex]:
                 if value < min_:
                     return _('parameter')+' {} '.format(name)+_('minimum value')+' {} '.format(min_), None
             else:
@@ -666,10 +666,10 @@ class ApiShop():
 
         # 检查最大值/长度
         if max_:
-            if type_ in [str, list, dict, set]:
+            if type(value) in [str, list, dict, set]:
                 if len(value) > max_:
                     return _('parameter')+' {} '.format(name)+_('maximum length')+' {} '.format(max_), None
-            elif type_ in [int, float, bool, complex]:
+            elif type(value) in [int, float, bool, complex]:
                 if value > max_:
                     return _('parameter')+' {} '.format(name)+_('maximum value')+' {} '.format(max_), None
             else:

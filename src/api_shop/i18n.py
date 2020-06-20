@@ -23,7 +23,8 @@ class i18n_init():
             'Not support': 'Not support',
             'supported framework as follows:': 'supported framework as follows:',
             'Did not find the framework': 'Did not find the framework. Please install ',
-            'must be in the list of options':'must be in the list of options',
+            'must be in the list of options': 'must be in the list of options',
+            'value is not string type number.':'value is not string type number.',
         },
         'zh': {
             'no attributes found': '没有找到属性：',
@@ -45,7 +46,13 @@ class i18n_init():
             'Did not find the framework': '没找指定的框架，请安装',
             'must be in the list of options': '必须在可选项列表中',
             'request.method and method are not equal': 'request.method和method不相等',
-            'api-shop return result is not success.':'api-shop返回结果不成功。'
+            'api-shop return result is not success.': 'api-shop返回结果不成功。',
+            'value is not string type number.': '值不是字符串数字。',
+            'numeric': '字符串数字',
+            'email': '邮箱',
+            'chinese': '中文',
+            'cellphone': '手机号',
+            'idcard':'身份证',
 
         }
     }

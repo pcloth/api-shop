@@ -1,6 +1,19 @@
 # changelog
 
 ---
+> 2020-06-20
+>
+> var 1.11.0
+-Added regex regular format check under data_format
+-data_format.numeric numeric string
+-email
+-data_format.chinese Chinese
+-data_format.url url format
+-data_format.cellphone mobile number
+-data_format.idcard ID number
+---
+
+---
 > 2020-02-04
 >
 > var 1.10.1
