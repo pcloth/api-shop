@@ -35,6 +35,12 @@ ap = ApiShop(conf,options)
 ''' 
 response_json,code = ap.api_run(request, url, method=None, parameter={'a':1}, json=True)
 print(response_json,code)
+
+# 或者直接在Api实例中使用 # Or use it directly in the Api instance
+class test_api(Api):
+    def post(self, request, data):
+        response_json,code = self..api_run(request, other_url, method=None, parameter={'a':1}, json=True)
+        print(response_json,code)
 ```
 ### ApiShop conf 说明
 #### ApiShop conf 例子

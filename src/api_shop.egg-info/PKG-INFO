@@ -1,6 +1,6 @@
 Metadata-Version: 1.2
 Name: api-shop
-Version: 1.12.0
+Version: 1.12.3
 Summary: RESTful api shop for django or flask or bottle
 Home-page: https://github.com/pcloth/api-shop
 Author: pcloth

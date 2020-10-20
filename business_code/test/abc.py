@@ -16,3 +16,14 @@ class api_login(Api):
         print(ret,code,'>>>>')
         return ret,code
         
+    def get(self, request, data):
+        """ todo:
+        api-shop automatically inserts code
+        data.username # 用户名
+        data.ddd # 日期
+        """
+        # from flask_demo.views import af
+        # ret,code = af.api_run(request, 'weixin/name/2', 'POST')
+        ret,code = self.api_run(request, 'weixin/name/2', 'POST')
+        print(ret,code,'>>>>')
+        return ret,code

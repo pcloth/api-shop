@@ -14,9 +14,9 @@ conf = [
         'class': 'business_code.test.abc.api_login',
         'name': '微信账户登录',
         'methods': {
-            'POST': [
+            'GET': [
                 {'name': 'username', 'type': str, 'required': True, 'description': '用户名',},
-                {'name': 'ddd', 'type': str,   'description': '日期','options':['2018-10-26']},
+                {'name': 'ddd', 'type': str,   'description': '日期',},
             ]
         }
     },

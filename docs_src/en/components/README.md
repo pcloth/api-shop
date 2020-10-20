@@ -37,6 +37,13 @@ This method will replace the original get_api_result_json and get_api_result_res
 '''
 response_json,code = ap.api_run(request, url, method='GET', parameter={'a':1}, json=True)
 print(response_json,code)
+
+# Or use it directly in the Api instance
+class test_api(Api):
+    def post(self, request, data):
+        response_json,code = self..api_run(request, other_url, method=None, parameter={'a':1}, json=True)
+        print(response_json,code)
+
 ```
 
 ### ApiShop conf description

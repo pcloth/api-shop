@@ -279,8 +279,10 @@ class Api():
         def patch(self,request,data):
             # 同上
     '''
-    def __new__(self, request, data=None, json=None):
-        method = request.method.lower()
+    def __new__(self, request, data=None, json=None, method=None):
+        if not method:
+            method = request.method
+        method = method.lower()
         if hasattr(self, method):
             func = getattr(self,method)
             retdata = func(self, request, data)
@@ -429,6 +431,7 @@ class ApiShop():
         for i in range(len(conf)):
             # model = dynamic_import(conf[i]['class'])
             model = self.__dynamic_import(conf[i])
+            model.api_run = self.api_run
             if type(conf[i]['class'])!=str:
                 # 直接使用对象
                 conf[i]['class'] = self.__class_to_json(conf[i]['class'])
@@ -725,9 +728,9 @@ class ApiShop():
             errmsg = _('no such interface method')
         if errmsg:
             if json:
-                return {'msg': errmsg}, api.bad_request_error_status
+                return {'msg': errmsg}, 400
             return return_response(errmsg)
-        ret = model(request, data, json)
+        ret = model(request, data, json, method)
         return ret
 
     def api_entry(self,request,*url):

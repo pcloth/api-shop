@@ -16,8 +16,8 @@ class test(Api):
         # return
         # # return 'err',400
         # return {'msg':'你删除了id={}的账号'.format(data.id)}
-        return {'msg':'okok'}
+        return {'msg':'GET信息','data':data}
 
     def post(self, request, data=None):
         print('test', data)
-        return {'msg':'你提交了信息','data':data}
+        return {'msg':'POST信息','data':data}
