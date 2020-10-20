@@ -29,4 +29,4 @@ footer: MIT Licensed | Copyright © 2019 Pcloth
 11. 支持url中包含参数，例如 `/api/user/<id>`，并且在配置methods参数的时候设置它的规则。
 12. 支持多url绑定一个接口
 13. 支持指定参数的可选项，例如：[1,4,7]，收到这个列表之外的参数就会触发bad_request
-14. 可以在代码中直接调用Api业务代码：`get_api_result_json`和`get_api_result_response`
+14. 可以在代码中直接调用Api业务代码：`api_run`（将移除`get_api_result_json`和`get_api_result_response`）

@@ -4,9 +4,8 @@
 :----------- | :-----------: | :-----------
 ApiShop         | api初始化类        | 用以加载conf和options
 Api         | 业务基础类        | 用来继承后写实际的业务代码
-
-get_api_result_json         | 直接调用业务类        | 返回 json,status_code
-get_api_result_response         | 直接调用业务类        | 返回response
+get_api_result_json         | 直接调用业务类(后面版本将删除它)        | 返回 json,status_code
+get_api_result_response         | 直接调用业务类(后面版本将删除它)        | 返回response
 data_format | 内置自定义数据格式 | data_format.datetime 可以将一个字符串转换成datetime格式
 data_format.DataExpansion | 自定义数据基础类 | 用来写自定义数据格式
 
@@ -21,7 +20,22 @@ api-shop核心类，实例化后生成接口对象，你只需要访问实例的
 ```python
 ap = ApiShop(conf,options)
 ```
-
+### 代码中直接运行另一个api接口
+::: tip
+从1.12.0版本开始，ApiShop核心类提供了一个api_run的方法，用来在代码中运行另外一个api代码，方便复用。
+这个方法将取代原本的get_api_result_json和get_api_result_response
+:::
+```python
+'''
+    request   直接传入当前request，
+    url       就是你想要访问的接口url
+    method    如果不传入，就是 = request.method
+    parameter 请求参数，如果不传入，就没有参数传入到api中
+    json      默认True返回json数据，False就会返回response
+''' 
+response_json,code = ap.api_run(request, url, method=None, parameter={'a':1}, json=True)
+print(response_json,code)
+```
 ### ApiShop conf 说明
 #### ApiShop conf 例子
 ``` python

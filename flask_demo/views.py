@@ -15,7 +15,7 @@ conf = [
         'name': '微信账户登录',
         'methods': {
             'POST': [
-                {'name': 'username', 'type': str, 'required': True, 'min': 3, 'max': 24, 'description': '用户名', 'options':['a','bb','c_c']},
+                {'name': 'username', 'type': str, 'required': True, 'description': '用户名',},
                 {'name': 'ddd', 'type': str,   'description': '日期','options':['2018-10-26']},
             ]
         }
@@ -27,7 +27,8 @@ conf = [
         'methods': {
             'POST': [
                 {'name': 'id', 'type': str, 'description': '用户id'},
-                {'name': 'name', 'type': str, 'min':4,'required': True,'description': '用户name'}, 
+                {'name': 'name', 'type': str, 'min': 4, 'required': True, 'description': '用户name'},
+                {'name': 'a', 'type': str, 'description': '参数A'},
             ],
         }
     },
@@ -52,12 +53,9 @@ af = ApiShop(conf,
 from src.api_shop import get_api_result_json
 from business_code.test.abc import api_login
 
-a = ApiDataClass({'test': 1})
-print('>>>',a)
+
 @simple_page.route('/api/<regex("([\s\S]*)"):url>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 def hello_world(url):
-    print('flask:', get_api_result_json(api_login, 'POST', {}))
-
     if url == 'document/':
         return af.render_documents(request, url)
     if url == 'api_data':

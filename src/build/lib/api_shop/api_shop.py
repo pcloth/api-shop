@@ -279,7 +279,7 @@ class Api():
         def patch(self,request,data):
             # 同上
     '''
-    def __new__(self, request, data=None):
+    def __new__(self, request, data=None, json=None):
         method = request.method.lower()
         if hasattr(self, method):
             func = getattr(self,method)
@@ -292,8 +292,10 @@ class Api():
                 ret = retdata
             # 允许返回空body
             if ret == None:
-                ret = ''
-            if type(ret) == dict:
+                ret = {}
+            if json:
+                return ret, status_code
+            elif type(ret) == dict:
                 return api.framework.json(ret, status_code)
             else:
                 return api.framework.http(ret, status_code)
@@ -470,10 +472,11 @@ class ApiShop():
     def __find_api_function(self, url):
         # 查找api所指向的模块
         if (type(url) == tuple and len(url) > 0):
-            key, value_dict = self.__find_url_rule(url[0])
-            model = self.url_dict.get(key)
-            if model:
-                return model,key,value_dict
+            url = url[0]
+        key, value_dict = self.__find_url_rule(url)
+        model = self.url_dict.get(key)
+        if model:
+            return model,key,value_dict
         return self.__not_find_url_function,None,None
 
     def __find_api_methons(self, url):
@@ -679,12 +682,12 @@ class ApiShop():
         
         return None, value
 
-    def verify_parameter(self, request, par_conf,value_dict=None):
+    def verify_parameter(self, request, par_conf,value_dict=None,parameter=None):
         # 校验参数合法性，并转换成参数对象
         if type(par_conf) != list:
             return _('The wrong configuration, methons must be loaded inside the list container.'), None
-
-        parameter = self.get_parameter(request)
+        if parameter is None:
+            parameter = self.get_parameter(request)
         if value_dict:
             parameter.update(value_dict)
         adc = ApiDataClass()
@@ -698,7 +701,35 @@ class ApiShop():
             else:
                 setattr(adc, key, value)
         return errmsg, adc
-        
+
+    def api_run(self, request, url, method=None, parameter=None, json=True):
+        '''在代码中直接运行接口，方便复用接口代码
+        request   直接传入当前request，
+        url       就是你想要访问的接口url
+        method    如果不传入，就是 = request.method
+        parameter 请求参数，如果不传入，就没有参数传入到api中
+        json      默认True返回json数据，False就会返回response
+        '''
+        if not method:
+            method = request.method
+        model, key, value_dict = self.__find_api_function(url)
+        methons = self.__find_api_methons(key)
+        errmsg = ''
+        if methons and not method is None:
+            # 有配置方法和参数，校验参数合法性，并转换参数
+            par_conf = methons.get(method.upper())
+            if parameter is None:
+                parameter = {}
+            errmsg, data = self.verify_parameter(None, par_conf,value_dict=value_dict,parameter=parameter)
+        else:
+            errmsg = _('no such interface method')
+        if errmsg:
+            if json:
+                return {'msg': errmsg}, api.bad_request_error_status
+            return return_response(errmsg)
+        ret = model(request, data, json)
+        return ret
+
     def api_entry(self,request,*url):
         '''api入口'''
         model, key, value_dict = self.__find_api_function(url)

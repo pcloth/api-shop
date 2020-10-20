@@ -29,4 +29,4 @@ footer: MIT Licensed | Copyright © 2019 Pcloth
 11. Support url contains parameters, such as `/api/user/<id>`, and set its rules when configuring method parameters.
 12. Support multiple url binding an interface
 13. Supports options for specifying parameters, for example: [1,4,7], bad_request will be triggered when parameters outside this list are received
-14. You can directly call the Api business code in the code: `get_api_result_json` and `get_api_result_response`
+14. You can directly call the Api business code in the code: `api_run` (`get_api_result_json` and `get_api_result_response` will be removed)

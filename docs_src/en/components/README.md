@@ -4,8 +4,8 @@
 :----------- | :-----------: | :-----------
 ApiShop         | Api initialization class        | Used to load conf and options
 Api         | Business base class        | Used to inherit and write the actual business code
-get_api_result_json         | Call the business class directly        | return json,status_code
-get_api_result_response         | Call the business class directly        | return response
+get_api_result_json         | Call the business class directly(It will be deleted in later versions)        | return json,status_code
+get_api_result_response         | Call the business class directly(It will be deleted in later versions)        | return response
 data_format | Built-in custom data format | data_format.datetime Convert a string to datetime format
 data_format.DataExpansion | Custom data foundation class | Used to write custom data formats
 
@@ -19,6 +19,24 @@ The api-shop core class, after instantiation, generates an interface object. You
 
 ```python
 ap = ApiShop(conf,options)
+```
+
+
+### Run another api interface directly in the code
+::: tip
+Starting from version 1.12.0, the ApiShop core class provides an api_run method to run another api code in the code for easy reuse.
+This method will replace the original get_api_result_json and get_api_result_response
+:::
+```python
+'''
+     request is directly passed into the current request,
+     url is the interface url you want to access
+     If method is not passed in, it is = request.method
+     parameter request parameter, if it is not passed, no parameter is passed to the api
+     json returns json data by default True, False will return response
+'''
+response_json,code = ap.api_run(request, url, method='GET', parameter={'a':1}, json=True)
+print(response_json,code)
 ```
 
 ### ApiShop conf description

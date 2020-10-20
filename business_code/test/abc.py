@@ -11,7 +11,8 @@ class api_login(Api):
         data.username # 用户名
         data.ddd # 日期
         """
-        print(data)
-        # return
-        return {'msg':'test'},400
-        return 11
+        from flask_demo.views import af
+        ret,code = af.api_run(request, 'weixin/test/1', 'POST')
+        print(ret,code,'>>>>')
+        return ret,code
+        

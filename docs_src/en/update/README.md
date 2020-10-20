@@ -1,4 +1,11 @@
 # changelog
+---
+> 2020-10-20
+>
+> var 1.12.0
+-Added api_run method instead of (`get_api_result_json` and `get_api_result_response`, they will be removed in later versions)
+-When returning an empty body, a {} string is added to avoid triggering some front-end framework serialization BUG
+---
 
 ---
 > 2020-06-20
