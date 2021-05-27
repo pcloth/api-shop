@@ -454,8 +454,19 @@ class ApiShop():
             conf[i]['methods'] = self.__class_to_json(conf[i]['methods'])
             
             if hasattr(model,'__doc__'):
+                # 接口文档说明
                 conf[i]['document'] = getattr(model, '__doc__')
-            conf[i]['methods_documents'] = {}
+            conf[i]['methods_documents'] = {} # 方法文档说明
+            conf[i]['methods_return'] = {} # 方法返回值说明
+            if hasattr(model, 'response_docs'):
+                docs_obj = getattr(model, 'response_docs')
+                response_docs = {}
+                for key in ['get', 'post', 'delete', 'put', 'patch']:
+                    if hasattr(docs_obj, key):
+                        nodes = docs_obj[key]
+                        roots = self.__find_response_docs(key.upper(),nodes)
+                        response_docs.update({key.upper():roots})
+                conf[i]['methods_return'] = response_docs
             if self.options.get('auto_create_method'):
                 check_fill_methods(model,conf[i])
             for key in ['get', 'post', 'delete', 'put', 'patch']:
@@ -465,8 +476,109 @@ class ApiShop():
                     if hasattr(mt, '__doc__'):
                         conf[i]['methods_documents'].update({key.upper(): getattr(mt, '__doc__')})
 
-
         return conf
+
+    def __mk_django_model_field_doc(self,field):
+        # 把django字段模型提取成文档字段
+        if not hasattr(field,'column'):
+            # print(field,type(field),dir(field),'>>>>>>>>')
+            return {}
+        return {
+            'name':field.column,
+            'type':type(field).__name__,
+            'desc':field.verbose_name,
+        }
+
+    
+
+    def __find_response_docs(self,key,docs_node):
+        # 容器层
+        children = []
+        type_ = ''
+        desc = ''
+        if type(docs_node) == str:
+            # 手写描述
+            desc = docs_node
+        elif type(docs_node) == dict:
+            # 字典容器递归
+            type_='Object'
+            for k,v in docs_node.items():
+                this = self.__find_response_docs(k,v)
+                if type(this) == list:
+                    children += this
+                elif type(this) == dict:
+                    children.append(this)
+        elif type(docs_node) == set:
+            # 集合,也是单
+            type_='Object'
+            for v in docs_node:
+                this = self.__find_response_docs(key,v)
+                if type(this) == list:
+                    children += this
+                elif type(this) == dict:
+                    children.append(this)
+        elif type(docs_node) == list:
+            # 列表对象,包含可能多组字段
+            type_='Array'
+            for v in docs_node:
+                this = self.__find_response_docs(key,v)
+                if type(this) == list:
+                    children += this
+                elif type(this) == dict:
+                    children.append(this)
+        elif 'django.db.models' in str(type(docs_node)):
+            if hasattr(docs_node,'_meta'):
+                for obj in docs_node._meta.fields:
+                    children.append(self.__mk_django_model_field_doc(obj))
+            else:
+                # 单元格
+                children.append(self.__mk_django_model_field_doc(docs_node))
+            return children
+        return {
+            'name':key,
+            'type':type_,
+            'desc':desc,
+            'children':children
+        }
+        
+        '''
+            for v in docs_node:
+                if type(v) == dict:
+                    # 子字典容器递归
+                    return self.__find_response_docs(v)
+                elif type(v) == list:
+                    # 子列表容器递归
+                    return self.__find_response_docs(v)
+                elif 'django.db.models' in str(type(v)):
+                    if hasattr(docs_node,'_meta'):
+                        # MODEL
+                        for obj in docs_node._meta.fields:
+                            children.append(self.__mk_django_model_field_doc(obj))
+                    else:
+                        # 单元格
+                        children.append(self.__mk_django_model_field_doc(v))
+        return children
+        '''
+
+        # elif type(docs_node) == str:
+        #     ret.update({'name':docs_node})
+        # elif 'django.db.models' in str(type(docs_node)):
+        #     # django的orm模型
+        #     if hasattr(docs_node,'_meta'):
+        #         # MODEL
+        #         children = []
+        #         for obj in docs_node._meta.fields:
+        #             # 字段名 # 说明
+        #             children.append(self.__mk_django_model_field_doc(obj))
+        #         ret = children
+        #         # ret.update({'children':children})
+        #     else:
+        #         ret = self.__mk_django_model_field_doc(docs_node)
+        # else:
+        #     # print(type(docs_node),'>>>>>未知结构')
+        #     if hasattr(docs_node,'__doc__'):
+        #         ret.update({'name':docs_node.__doc__})
+        # return ret
 
     def __not_find_url_function(self, request):
         # 如果找不到业务模块

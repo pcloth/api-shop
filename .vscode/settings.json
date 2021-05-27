@@ -1,5 +1,9 @@
 {
     "restructuredtext.confPath": "",
     "translateSpeaker.voiceFilename": false,
-    "translateSpeaker.voiceEditing": false
+    "translateSpeaker.voiceEditing": false,
+    "editor.detectIndentation": false,
+    "editor.tabSize": 4,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true
 }
