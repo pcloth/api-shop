@@ -1,7 +1,7 @@
 # api-shop  ![PyPI](https://img.shields.io/pypi/v/api-shop?logo=api-shop) ![PyPI - Downloads](https://img.shields.io/pypi/dm/api-shop)
 
-## [Online Documents](https://pcloth.github.io/api-shop/index.html)
-## [在线文档](https://pcloth.github.io/api-shop/index.html)
+## [Online Documents](https://pcloth.gitee.io/api-shop/)
+## [在线文档](https://pcloth.gitee.io/api-shop/)
 
 > ### api-shop：一个易用的、快速的restful-api接口工具包，兼容：`django` / `flask` / `bottle`。
 > ### `一切只为少加班。`
@@ -29,7 +29,7 @@
 
 
 
-## [Online Documents](https://pcloth.github.io/api-shop/index.html)
-## [在线文档](https://pcloth.github.io/api-shop/index.html)
+## [Online Documents](https://pcloth.gitee.io/api-shop/)
+## [在线文档](https://pcloth.gitee.io/api-shop/)
 
 
