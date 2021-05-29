@@ -19,20 +19,17 @@ _ = i18._
 
 class Namespace(dict):
     def __getattr__(self, name):
-        try:
-            return self[name]
-        except KeyError:
+        if name in self.keys():
+            return self.get(name)
+        else:
             raise AttributeError(_('no attributes found')+'{}'.format(name))
 
     def __setattr__(self, name, value):
-        self[name] = value
+        self.update({name:value})
 
 class ApiInit(Namespace):
     '''接口初始化内，用于内部传递状态和配置加载多框架支持'''
     
-    
-
-
 # 框架基础配置
 class FW(Namespace):
     # 配置框架需要使用的方法
@@ -151,13 +148,51 @@ class FW(Namespace):
 
         self.func_dict = self.framework_return.get(self.name)
        
-        
-        
-            
+
+class ApiResponseModelFields():
+    '''用来包含模型的部分字段'''
+    def __init__(self, model, fields:list=None, return_type=set):
+        self.model = model
+        self.type = return_type
+        self.fwname = ''
+        if 'django.db.models' in str(type(model)):
+            self.fwname = 'django'
+        self.fields = fields
+
+    def __new__(cls, *args, **kwargs):
+        model = kwargs.get('model')
+        fields = kwargs.get('fields')
+        if len(args)>=1:
+            model = args[0]
+        if len(args)>=2:
+            fields = args[1]
+        if fields:
+            return object.__new__(cls)
+        return model
+
+    def get_fields(self):
+        # 返回模型字段
+        nameList = []
+        for field in self.fields:
+            key = None
+            if type(field)==str:
+                # 传入的字符串描述字段名称
+                key = field
+            elif hasattr(field, 'field_name'):
+                key = field.field_name
+            # raise BaseException(_('request.method and method are not equal'))
+            if self.fwname == 'django' and key:
+                nameList.append(key)
+        objList = []
+        for obj in self.model._meta.fields:
+            if self.fwname == 'django' and obj.name in nameList:
+                objList.append(obj)
+        if self.type == set:
+            return set(objList)
+        return objList
+
 
 api = ApiInit()
-
-
 
 class ApiDataClass(Namespace):
     '''api-data类'''
@@ -166,13 +201,13 @@ class ApiDataClass(Namespace):
             self.update(data)
 
     def dict(self):
-        return self.__dict__
+        return self
     
     def to_dict(self):
-        return self.__dict__
+        return self
 
     def get_json(self):
-        return self.__dict__
+        return self
 
     def is_ajax(self):
         return False
@@ -497,8 +532,15 @@ class ApiShop():
         type_ = ''
         desc = ''
         if type(docs_node) == str:
-            # 手写描述
-            desc = docs_node
+            # 手写描述规定格式：key:type:desc
+            # 比如photos:Array:照片url字符串组成的列表数据
+            arr = docs_node.split(':')
+            if len(arr)==3:
+                key = arr[0]
+                type_ = arr[1]
+                desc= arr[2]
+            else:
+                desc = docs_node
         elif type(docs_node) == dict:
             # 字典容器递归
             type_='Object'
@@ -509,7 +551,7 @@ class ApiShop():
                 elif type(this) == dict:
                     children.append(this)
         elif type(docs_node) == set:
-            # 集合,也是单
+            # 集合，用来表示单个对象
             type_='Object'
             for v in docs_node:
                 this = self.__find_response_docs(key,v)
@@ -529,56 +571,23 @@ class ApiShop():
         elif 'django.db.models' in str(type(docs_node)):
             if hasattr(docs_node,'_meta'):
                 for obj in docs_node._meta.fields:
-                    children.append(self.__mk_django_model_field_doc(obj))
+                    children.append(self.__mk_django_model_field_doc(obj))            
             else:
-                # 单元格
+                # 解析从模型引入的整体单元格
                 children.append(self.__mk_django_model_field_doc(docs_node))
             return children
+        elif 'ApiResponseModelFields' in str(type(docs_node)):
+            # 解析部分字段
+            fields = docs_node.get_fields()
+            this = self.__find_response_docs(key,fields)
+            return this['children']
+        # todo 这里还需要加入flask的models
         return {
             'name':key,
             'type':type_,
             'desc':desc,
             'children':children
         }
-        
-        '''
-            for v in docs_node:
-                if type(v) == dict:
-                    # 子字典容器递归
-                    return self.__find_response_docs(v)
-                elif type(v) == list:
-                    # 子列表容器递归
-                    return self.__find_response_docs(v)
-                elif 'django.db.models' in str(type(v)):
-                    if hasattr(docs_node,'_meta'):
-                        # MODEL
-                        for obj in docs_node._meta.fields:
-                            children.append(self.__mk_django_model_field_doc(obj))
-                    else:
-                        # 单元格
-                        children.append(self.__mk_django_model_field_doc(v))
-        return children
-        '''
-
-        # elif type(docs_node) == str:
-        #     ret.update({'name':docs_node})
-        # elif 'django.db.models' in str(type(docs_node)):
-        #     # django的orm模型
-        #     if hasattr(docs_node,'_meta'):
-        #         # MODEL
-        #         children = []
-        #         for obj in docs_node._meta.fields:
-        #             # 字段名 # 说明
-        #             children.append(self.__mk_django_model_field_doc(obj))
-        #         ret = children
-        #         # ret.update({'children':children})
-        #     else:
-        #         ret = self.__mk_django_model_field_doc(docs_node)
-        # else:
-        #     # print(type(docs_node),'>>>>>未知结构')
-        #     if hasattr(docs_node,'__doc__'):
-        #         ret.update({'name':docs_node.__doc__})
-        # return ret
 
     def __not_find_url_function(self, request):
         # 如果找不到业务模块
@@ -671,7 +680,12 @@ class ApiShop():
         # 获取django的request数据
         if api.framework.name =='django':
             if request.GET:
-                data.update(request.GET.dict())
+                for k,v in request.GET.items():
+                    if k.endswith('[]'):
+                        # 从get传递过来的同名参数，需要重组成list对象
+                        v = request.GET.getlist(k)
+                        k = k[:-2]
+                    data.update({k:v})
             elif request.POST:
                 data.update(request.POST.dict())
             elif request.is_ajax():
@@ -703,7 +717,6 @@ class ApiShop():
                 data.update(request.POST)
             if request.json:
                 data.update(request.json)
-
         return data
       
     def __verify(self, conf, name, value):
