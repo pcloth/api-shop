@@ -158,7 +158,7 @@ class api_login(Api):
         'get':{
             'results':{PartyData},
             'test':{
-                ApiResponseModelFields(PartyData,['id',PartyData.name]), # 使用部分字段
+                ApiResponseModelFields(PartyData,['id',PartyData.name]), # 使用部分字段，django必须使用这个类包裹才能引入部分字段，flask则可以直接使用字段名
                 'photos:Array:照片数据' # 手写字段文档
                 },
             'user_party_info':{PartyUsers,'photos:Array:照片数据'} # PartyUsers模型的全部字段叠加部分其他字段

@@ -1,5 +1,16 @@
 # 更新记录
 ---
+> 2021-05-31 
+>
+> var 1.13.0
+- 修复当参数为get之类的关键字会造成无法识别的bug.
+- 修复当url参数传递中有list类型时不能识别的bug
+- 添加response_docs返回值文档描述
+- 添加ApiResponseModelFields类用来引入模型的部分字段到response_docs返回值文档
+---
+
+
+---
 > 2020-10-20 
 >
 > var 1.12.0

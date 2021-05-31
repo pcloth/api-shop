@@ -10,7 +10,7 @@ features:
   details: 自动校验参数、自动转换参数格式、自动生成文档和mock工具
 - title: 省时
   details: 简化业务代码，外部和内部均可复用。一切只为少加班。
-footer: MIT Licensed | Copyright © 2019 Pcloth
+footer: MIT Licensed | Copyright © 2019-2021 Pcloth
 ---
 
 ![PyPI](https://img.shields.io/pypi/v/api-shop?logo=api-shop) ![PyPI - Downloads](https://img.shields.io/pypi/dm/api-shop)
@@ -30,3 +30,4 @@ footer: MIT Licensed | Copyright © 2019 Pcloth
 12. 支持多url绑定一个接口
 13. 支持指定参数的可选项，例如：[1,4,7]，收到这个列表之外的参数就会触发bad_request
 14. 可以在代码中直接调用Api业务代码：`api_run`（将移除`get_api_result_json`和`get_api_result_response`）
+15. 支持在Api类中定义response_docs来制作返回值文档，并支持模型字段引入；以及模型部分字段引入类：ApiResponseModelFields
