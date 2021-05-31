@@ -19,20 +19,17 @@ _ = i18._
 
 class Namespace(dict):
     def __getattr__(self, name):
-        try:
-            return self[name]
-        except KeyError:
+        if name in self.keys():
+            return self.get(name)
+        else:
             raise AttributeError(_('no attributes found')+'{}'.format(name))
 
     def __setattr__(self, name, value):
-        self[name] = value
+        self.update({name:value})
 
 class ApiInit(Namespace):
     '''接口初始化内，用于内部传递状态和配置加载多框架支持'''
     
-    
-
-
 # 框架基础配置
 class FW(Namespace):
     # 配置框架需要使用的方法
@@ -151,13 +148,60 @@ class FW(Namespace):
 
         self.func_dict = self.framework_return.get(self.name)
        
-        
-        
-            
+
+class ApiResponseModelFields():
+    '''用来包含模型的部分字段'''
+    def __init__(self, model, fields:list=None, return_type=set):
+        self.model = model
+        self.type = return_type
+        self.fwname = ''
+        if 'django.db.models' in str(type(model)):
+            self.fwname = 'django'
+        elif 'sqlalchemy.orm' in str(type(model)):
+            self.fwname = 'flask'
+        self.fields = fields
+
+    def __new__(cls, *args, **kwargs):
+        model = kwargs.get('model')
+        fields = kwargs.get('fields')
+        if len(args)>=1:
+            model = args[0]
+        if len(args)>=2:
+            fields = args[1]
+        if fields:
+            return object.__new__(cls)
+        return model
+
+    def get_fields(self):
+        # 返回模型字段
+        nameList = []
+        for field in self.fields:
+            key = None
+            if type(field)==str:
+                # 传入的字符串描述字段名称
+                key = field
+            elif self.fwname == 'django' and hasattr(field, 'field_name'):
+                key = field.field_name
+            elif self.fwname == 'flask' and hasattr(field, 'name'):
+                key = field.name
+            # raise BaseException(_('request.method and method are not equal'))
+            if key:
+                nameList.append(key)
+        objList = []
+        if self.fwname == 'django':
+            for obj in self.model._meta.fields:
+                if obj.name in nameList:
+                    objList.append(obj)
+        if self.fwname == 'flask':
+            for obj in self.model.__table__._columns:
+                if obj.name in nameList:
+                    objList.append(obj)
+        if self.type == set:
+            return set(objList)
+        return objList
+
 
 api = ApiInit()
-
-
 
 class ApiDataClass(Namespace):
     '''api-data类'''
@@ -166,13 +210,13 @@ class ApiDataClass(Namespace):
             self.update(data)
 
     def dict(self):
-        return self.__dict__
+        return self
     
     def to_dict(self):
-        return self.__dict__
+        return self
 
     def get_json(self):
-        return self.__dict__
+        return self
 
     def is_ajax(self):
         return False
@@ -188,6 +232,7 @@ def get_api_result_json(api_class, method, data=None, request=None, not200=True)
     return json,status_code
 
     '''
+    print(_('Please use the ApiShop.api_run instance method instead of this method, this method will be removed in later versions!!'))
     response = get_api_result_response(api_class, method, data,request,not200)
     if not response:
         # 无结果
@@ -227,6 +272,7 @@ def get_api_result_response(api_class, method, data=None, request=None, not200=T
     not200=True 是允许status_code不等于200的结果，为False的时候，遇到200以外程序中断并抛错
     返回值是 response
     '''
+    print(_('Please use the ApiShop.api_run instance method instead of this method, this method will be removed in later versions!!'))
     d_ = ApiDataClass(data)
 
     fw = api.get('framework')
@@ -454,8 +500,19 @@ class ApiShop():
             conf[i]['methods'] = self.__class_to_json(conf[i]['methods'])
             
             if hasattr(model,'__doc__'):
+                # 接口文档说明
                 conf[i]['document'] = getattr(model, '__doc__')
-            conf[i]['methods_documents'] = {}
+            conf[i]['methods_documents'] = {} # 方法文档说明
+            conf[i]['methods_return'] = {} # 方法返回值说明
+            if hasattr(model, 'response_docs'):
+                docs_obj = getattr(model, 'response_docs')
+                response_docs = {}
+                for key in ['get', 'post', 'delete', 'put', 'patch']:
+                    if docs_obj.get(key):
+                        nodes = docs_obj.get(key)
+                        roots = self.__find_response_docs(key.upper(),nodes)
+                        response_docs.update({key.upper():roots})
+                conf[i]['methods_return'] = response_docs
             if self.options.get('auto_create_method'):
                 check_fill_methods(model,conf[i])
             for key in ['get', 'post', 'delete', 'put', 'patch']:
@@ -465,8 +522,94 @@ class ApiShop():
                     if hasattr(mt, '__doc__'):
                         conf[i]['methods_documents'].update({key.upper(): getattr(mt, '__doc__')})
 
-
         return conf
+
+    def __mk_django_model_field_doc(self,field):
+        # 把django字段模型提取成文档字段
+        if not hasattr(field,'column'):
+            raise BaseException(_("Django's independent fields must use the ApiResponseModelFields class"))
+        return {
+            'name':field.column,
+            'type':type(field).__name__,
+            'desc':field.verbose_name,
+        }
+    def __mk_flask_model_field_doc(self,field):
+        return {
+            'name':field.name,
+            'type':str(field.type),
+            'desc':field.comment,
+        }
+    
+    def __find_response_docs(self,key,docs_node):
+        # 容器层
+        children = []
+        type_ = ''
+        desc = ''
+        str_type = str(type(docs_node))
+        if type(docs_node) == str:
+            # 手写描述规定格式：key:type:desc
+            # 比如photos:Array:照片url字符串组成的列表数据
+            arr = docs_node.split(':')
+            if len(arr)==3:
+                key = arr[0]
+                type_ = arr[1]
+                desc= arr[2]
+            else:
+                desc = docs_node
+        elif type(docs_node) == dict:
+            # 字典容器递归
+            type_='Object'
+            for k,v in docs_node.items():
+                this = self.__find_response_docs(k,v)
+                if type(this) == list:
+                    children += this
+                elif type(this) == dict:
+                    children.append(this)
+        elif type(docs_node) == set:
+            # 集合，用来表示单个对象
+            type_='Object'
+            for v in docs_node:
+                this = self.__find_response_docs(key,v)
+                if type(this) == list:
+                    children += this
+                elif type(this) == dict:
+                    children.append(this)
+        elif type(docs_node) == list:
+            # 列表对象,包含可能多组字段
+            type_='Array'
+            for v in docs_node:
+                this = self.__find_response_docs(key,v)
+                if type(this) == list:
+                    children += this
+                elif type(this) == dict:
+                    children.append(this)
+        elif 'django.db.models' in str_type:
+            if hasattr(docs_node,'_meta'):
+                for obj in docs_node._meta.fields:
+                    children.append(self.__mk_django_model_field_doc(obj))
+            else:
+                # 单独django字段
+                children.append(self.__mk_django_model_field_doc(docs_node))
+            return children
+        elif 'ApiResponseModelFields' in str_type:
+            # 解析部分字段
+            fields = docs_node.get_fields()
+            this = self.__find_response_docs(key,fields)
+            return this['children']
+        elif 'sqlalchemy.sql.schema.Column' in str_type or 'sqlalchemy.orm.attributes' in str_type:
+            # flask 单独字段
+            return self.__mk_flask_model_field_doc(docs_node)
+        elif 'sqlalchemy.orm' in str_type:
+            # flask的models
+            if hasattr(docs_node, '__table__'):
+                for obj in docs_node.__table__._columns:
+                    children.append(self.__mk_flask_model_field_doc(obj))
+        return {
+            'name':key,
+            'type':type_,
+            'desc':desc,
+            'children':children
+        }
 
     def __not_find_url_function(self, request):
         # 如果找不到业务模块
@@ -559,7 +702,12 @@ class ApiShop():
         # 获取django的request数据
         if api.framework.name =='django':
             if request.GET:
-                data.update(request.GET.dict())
+                for k,v in request.GET.items():
+                    if k.endswith('[]'):
+                        # 从get传递过来的同名参数，需要重组成list对象
+                        v = request.GET.getlist(k)
+                        k = k[:-2]
+                    data.update({k:v})
             elif request.POST:
                 data.update(request.POST.dict())
             elif request.is_ajax():
@@ -591,7 +739,6 @@ class ApiShop():
                 data.update(request.POST)
             if request.json:
                 data.update(request.json)
-
         return data
       
     def __verify(self, conf, name, value):

@@ -131,9 +131,18 @@
         justify-content: flex-start;
     }
 
+    .flex-col {
+        display: flex;
+        flex-direction: column;
+    }
+
     .line {
         display: flex;
+    }
 
+    .data-type {
+        color: #999;
+        margin: 0 10px;
     }
 </style>
 <div id="app">
@@ -235,8 +244,8 @@
             'send mock request:': '发送模拟请求：',
             'response': 'response响应',
             'Prompt message': '提示信息',
-            'Please press F12 to check the delivery status.': '请按下F12查看发送情况。'
-
+            'Please press F12 to check the delivery status.': '请按下F12查看发送情况。',
+            'Response Docs': '返回值说明',
         },
         en: {
             'api count': 'api count',
@@ -356,6 +365,16 @@
                                     <el-table-column prop="description" :label="_('description')">\
                                     </el-table-column>\
                                 </el-table>\
+                            </div>\
+                            <div class="flex-col" v-if="currentApi.methods_return && currentApi.methods_return[key]">\
+                                <h4>{{_('Response Docs')}}</h4>\
+                                <el-tree default-expand-all :data="currentApi.methods_return[key].children">\
+                                    <span class="custom-tree-node" slot-scope="{ node, data }">
+                                        <el-tag size="mini">{{ data.name}}</el-tag>
+                                        <span class="data-type">{{ data.type}}</span>
+                                        <span>{{ data.desc}}</span>
+                                    </span>
+                                </el-tree>\
                             </div>\
                         </div>\
                 </el-tab-pane>\

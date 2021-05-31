@@ -4,7 +4,7 @@
 from setuptools import setup, find_packages
 import re, ast
 
-desc = open('README.rst', encoding='utf-8').read()
+desc = open('../README.MD', encoding='utf-8').read()
 _version_re = re.compile(r'__version__\s+=\s+(.*)')
 
 with open('api_shop/__init__.py', 'rb') as f:
@@ -20,6 +20,7 @@ setup(
         'RESTful api shop for django or flask or bottle'
     ),
     long_description=desc,
+    long_description_content_type='text/markdown',
     author='pcloth',
     author_email='pcloth@gmail.com',
     maintainer='pcloth',

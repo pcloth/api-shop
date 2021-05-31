@@ -1,5 +1,4 @@
 MANIFEST.in
-README.rst
 setup.py
 api_shop/__init__.py
 api_shop/api_shop.py
