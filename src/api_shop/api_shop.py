@@ -157,6 +157,8 @@ class ApiResponseModelFields():
         self.fwname = ''
         if 'django.db.models' in str(type(model)):
             self.fwname = 'django'
+        elif 'sqlalchemy.orm' in str(type(model)):
+            self.fwname = 'flask'
         self.fields = fields
 
     def __new__(cls, *args, **kwargs):
@@ -178,15 +180,22 @@ class ApiResponseModelFields():
             if type(field)==str:
                 # 传入的字符串描述字段名称
                 key = field
-            elif hasattr(field, 'field_name'):
+            elif self.fwname == 'django' and hasattr(field, 'field_name'):
                 key = field.field_name
+            elif self.fwname == 'flask' and hasattr(field, 'name'):
+                key = field.name
             # raise BaseException(_('request.method and method are not equal'))
-            if self.fwname == 'django' and key:
+            if key:
                 nameList.append(key)
         objList = []
-        for obj in self.model._meta.fields:
-            if self.fwname == 'django' and obj.name in nameList:
-                objList.append(obj)
+        if self.fwname == 'django':
+            for obj in self.model._meta.fields:
+                if obj.name in nameList:
+                    objList.append(obj)
+        if self.fwname == 'flask':
+            for obj in self.model.__table__._columns:
+                if obj.name in nameList:
+                    objList.append(obj)
         if self.type == set:
             return set(objList)
         return objList
@@ -223,6 +232,7 @@ def get_api_result_json(api_class, method, data=None, request=None, not200=True)
     return json,status_code
 
     '''
+    print(_('Please use the ApiShop.api_run instance method instead of this method, this method will be removed in later versions!!'))
     response = get_api_result_response(api_class, method, data,request,not200)
     if not response:
         # 无结果
@@ -262,6 +272,7 @@ def get_api_result_response(api_class, method, data=None, request=None, not200=T
     not200=True 是允许status_code不等于200的结果，为False的时候，遇到200以外程序中断并抛错
     返回值是 response
     '''
+    print(_('Please use the ApiShop.api_run instance method instead of this method, this method will be removed in later versions!!'))
     d_ = ApiDataClass(data)
 
     fw = api.get('framework')
@@ -497,8 +508,8 @@ class ApiShop():
                 docs_obj = getattr(model, 'response_docs')
                 response_docs = {}
                 for key in ['get', 'post', 'delete', 'put', 'patch']:
-                    if hasattr(docs_obj, key):
-                        nodes = docs_obj[key]
+                    if docs_obj.get(key):
+                        nodes = docs_obj.get(key)
                         roots = self.__find_response_docs(key.upper(),nodes)
                         response_docs.update({key.upper():roots})
                 conf[i]['methods_return'] = response_docs
@@ -516,21 +527,25 @@ class ApiShop():
     def __mk_django_model_field_doc(self,field):
         # 把django字段模型提取成文档字段
         if not hasattr(field,'column'):
-            # print(field,type(field),dir(field),'>>>>>>>>')
-            return {}
+            raise BaseException(_("Django's independent fields must use the ApiResponseModelFields class"))
         return {
             'name':field.column,
             'type':type(field).__name__,
             'desc':field.verbose_name,
         }
-
+    def __mk_flask_model_field_doc(self,field):
+        return {
+            'name':field.name,
+            'type':str(field.type),
+            'desc':field.comment,
+        }
     
-
     def __find_response_docs(self,key,docs_node):
         # 容器层
         children = []
         type_ = ''
         desc = ''
+        str_type = str(type(docs_node))
         if type(docs_node) == str:
             # 手写描述规定格式：key:type:desc
             # 比如photos:Array:照片url字符串组成的列表数据
@@ -568,20 +583,27 @@ class ApiShop():
                     children += this
                 elif type(this) == dict:
                     children.append(this)
-        elif 'django.db.models' in str(type(docs_node)):
+        elif 'django.db.models' in str_type:
             if hasattr(docs_node,'_meta'):
                 for obj in docs_node._meta.fields:
-                    children.append(self.__mk_django_model_field_doc(obj))            
+                    children.append(self.__mk_django_model_field_doc(obj))
             else:
-                # 解析从模型引入的整体单元格
+                # 单独django字段
                 children.append(self.__mk_django_model_field_doc(docs_node))
             return children
-        elif 'ApiResponseModelFields' in str(type(docs_node)):
+        elif 'ApiResponseModelFields' in str_type:
             # 解析部分字段
             fields = docs_node.get_fields()
             this = self.__find_response_docs(key,fields)
             return this['children']
-        # todo 这里还需要加入flask的models
+        elif 'sqlalchemy.sql.schema.Column' in str_type or 'sqlalchemy.orm.attributes' in str_type:
+            # flask 单独字段
+            return self.__mk_flask_model_field_doc(docs_node)
+        elif 'sqlalchemy.orm' in str_type:
+            # flask的models
+            if hasattr(docs_node, '__table__'):
+                for obj in docs_node.__table__._columns:
+                    children.append(self.__mk_flask_model_field_doc(obj))
         return {
             'name':key,
             'type':type_,

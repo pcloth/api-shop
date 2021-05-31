@@ -1,13 +1,15 @@
 # 组件
 
-模块名字 | 功能说明 | 模块介绍
-:----------- | :-----------: | :-----------
-ApiShop         | api初始化类        | 用以加载conf和options
-Api         | 业务基础类        | 用来继承后写实际的业务代码
-get_api_result_json         | 直接调用业务类(后面版本将删除它)        | 返回 json,status_code
-get_api_result_response         | 直接调用业务类(后面版本将删除它)        | 返回response
-data_format | 内置自定义数据格式 | data_format.datetime 可以将一个字符串转换成datetime格式
-data_format.DataExpansion | 自定义数据基础类 | 用来写自定义数据格式
+| 模块名字                  |                  功能说明                   | 模块介绍                                                                       |
+| :------------------------ | :-----------------------------------------: | :----------------------------------------------------------------------------- |
+| ApiShop                   |                 api初始化类                 | 用以加载conf和options                                                          |
+| api_run                   |               ApiShop实例方法               | 用来在业务代码中运行别的接口(取代get_api_result_json和get_api_result_response) |
+| Api                       |                 业务基础类                  | 用来继承后写实际的业务代码                                                     |
+| ApiResponseModelFields    | 制作包含部分model字段的response返回对象文档 |
+| get_api_result_json       |      直接调用业务类(后面版本将删除它)       | 返回 json,status_code                                                          |
+| get_api_result_response   |      直接调用业务类(后面版本将删除它)       | 返回response                                                                   |
+| data_format               |             内置自定义数据格式              | data_format.datetime 可以将一个字符串转换成datetime格式                        |
+| data_format.DataExpansion |              自定义数据基础类               | 用来写自定义数据格式                                                           |
 
 
 
@@ -63,25 +65,25 @@ conf = [
 ```
 
 #### ApiShop conf 详细
-键 | 值类型 | 说明
-:----------- | :----------- | -----------:
-url         | str,list        | 接口的url地址，只需要填写相对地址，如果有多条url，可以配置成`list`。支持url参数：`/api/url/<id>`
-class         | str,class        | 接口实际调用的业务类（继承至Api），可以是对象，也可以是引用地址
-name         | str        | 接口的名字
-methods         | dict        | 接口所能接收的methods：有GET POST DELETE PUT PATCH
+| 键      | 值类型    |                                                                                             说明 |
+| :------ | :-------- | -----------------------------------------------------------------------------------------------: |
+| url     | str,list  | 接口的url地址，只需要填写相对地址，如果有多条url，可以配置成`list`。支持url参数：`/api/url/<id>` |
+| class   | str,class |                                  接口实际调用的业务类（继承至Api），可以是对象，也可以是引用地址 |
+| name    | str       |                                                                                       接口的名字 |
+| methods | dict      |                                               接口所能接收的methods：有GET POST DELETE PUT PATCH |
 
 ### ApiShop conf methods 说明
 #### ApiShop conf methods 详细
-键 | 值类型 | 说明
-:----------- | :----------- | -----------:
-name         | str        | 参数名，接收后在data.name
-type         | class        | str,int,float,bool,list,dict,tuple等等，也支持data_format.datetime时间格式，你也可以自定义一个类型转换器
-required         | bool        | 是否是必要值
-default         | str,function        | 当没有接收到时的默认值，注意，它也会被type所指定的类型转换器转换。当它是一个function时，如果没有收到请求参数，将会自动运行这个方法获取值，同时将不再进行类型转换。
-min         | int,str        | 最小值/最小长度，为字符串时，会被type指定的类型转换器转换。
-max         | int,str        | 最大值/最大长度，为字符串时，会被type指定的类型转换器转换。
-description         | str        | 功能描述，给前端人员看文档的内容
-options    | list | 参数必须在这个列表中的值，例如：[1,4,7]，收到这个列表之外的参数就会触发bad_request
+| 键          | 值类型       |                                                                                                                                                               说明 |
+| :---------- | :----------- | -----------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| name        | str          |                                                                                                                                          参数名，接收后在data.name |
+| type        | class        |                                                           str,int,float,bool,list,dict,tuple等等，也支持data_format.datetime时间格式，你也可以自定义一个类型转换器 |
+| required    | bool         |                                                                                                                                                       是否是必要值 |
+| default     | str,function | 当没有接收到时的默认值，注意，它也会被type所指定的类型转换器转换。当它是一个function时，如果没有收到请求参数，将会自动运行这个方法获取值，同时将不再进行类型转换。 |
+| min         | int,str      |                                                                                                        最小值/最小长度，为字符串时，会被type指定的类型转换器转换。 |
+| max         | int,str      |                                                                                                        最大值/最大长度，为字符串时，会被type指定的类型转换器转换。 |
+| description | str          |                                                                                                                                   功能描述，给前端人员看文档的内容 |
+| options     | list         |                                                                                 参数必须在这个列表中的值，例如：[1,4,7]，收到这个列表之外的参数就会触发bad_request |
 
 
 ### ApiShop options 说明
@@ -96,22 +98,22 @@ options = {
             }
 ```
 #### ApiShop options 详细
-键 | 值类型 | 默认值 | 说明
-:----------- | :----------- | :----------- | -----------:
-base_url         | str        | /api/ | 接口url前缀
-bad_request         | bool        | True | 如果请求不合法，是否以坏请求方式返回；否则就是全部是200返回
-bad_request_error_status | str,int,bool | 'error' | 如果bad_request参数设置为False，那么这个参数就会启用，会在坏请求里附带一个status='error'的信息，你可以自定义这个信息。
-document         | str(path)        | 略 | 文档页面的html模板所在的路径，默认会有一个简易模板
-lang         | str        | en | 多国语言支持，目前内置en, zh
-lang_pack         | dict        | 无 | 扩展语言包，如果你想让api-shop支持更多语言
-name_classification | list | 无 | 用于默认的文档模板对接口名称进行过滤，便于查找
-url_classification | list | 无 | 用于默认的文档模板对接口url进行过滤，便于查找。例子：'url_classification':['weixin','login']
-auto_create_folder | bool | False | 自动创建文件夹，debug参数也必须为True才可以生效。
-auto_create_file | bool | False | 自动创建文件，debug参数也必须为True才可以生效。
-auto_create_class | bool | False | 自动创建类，debug参数也必须为True才可以生效。
-auto_create_method | bool | False | 自动创建方法，debug参数也必须为True才可以生效。
-framework | str | 无 | 手动指定框架，目前支持django、flask、bottle，如果不指定，将按顺序识别框架，如果同时安装了多个框架，请手动指定。
-debug | bool | True | 加载api业务代码的时候，遇到错误抛出。
+| 键                       | 值类型       | 默认值  |                                                                                                                   说明 |
+| :----------------------- | :----------- | :------ | ---------------------------------------------------------------------------------------------------------------------: |
+| base_url                 | str          | /api/   |                                                                                                            接口url前缀 |
+| bad_request              | bool         | True    |                                                            如果请求不合法，是否以坏请求方式返回；否则就是全部是200返回 |
+| bad_request_error_status | str,int,bool | 'error' | 如果bad_request参数设置为False，那么这个参数就会启用，会在坏请求里附带一个status='error'的信息，你可以自定义这个信息。 |
+| document                 | str(path)    | 略      |                                                                     文档页面的html模板所在的路径，默认会有一个简易模板 |
+| lang                     | str          | en      |                                                                                           多国语言支持，目前内置en, zh |
+| lang_pack                | dict         | 无      |                                                                             扩展语言包，如果你想让api-shop支持更多语言 |
+| name_classification      | list         | 无      |                                                                         用于默认的文档模板对接口名称进行过滤，便于查找 |
+| url_classification       | list         | 无      |                           用于默认的文档模板对接口url进行过滤，便于查找。例子：'url_classification':['weixin','login'] |
+| auto_create_folder       | bool         | False   |                                                                      自动创建文件夹，debug参数也必须为True才可以生效。 |
+| auto_create_file         | bool         | False   |                                                                        自动创建文件，debug参数也必须为True才可以生效。 |
+| auto_create_class        | bool         | False   |                                                                          自动创建类，debug参数也必须为True才可以生效。 |
+| auto_create_method       | bool         | False   |                                                                        自动创建方法，debug参数也必须为True才可以生效。 |
+| framework                | str          | 无      |        手动指定框架，目前支持django、flask、bottle，如果不指定，将按顺序识别框架，如果同时安装了多个框架，请手动指定。 |
+| debug                    | bool         | True    |                                                                                  加载api业务代码的时候，遇到错误抛出。 |
 
 ### ApiShop options lang_pack 说明
 #### ApiShop options lang_pack 例子
@@ -151,6 +153,18 @@ from api_shop import Api
 
 class api_login(Api):
     """用户账号登陆，这里的文字会被加载到文档里"""
+    response_docs = {
+        # 这个response_docs将会在文档中生成返回值说明文档
+        'get':{
+            'results':{PartyData},
+            'test':{
+                ApiResponseModelFields(PartyData,['id',PartyData.name]), # 使用部分字段
+                'photos:Array:照片数据' # 手写字段文档
+                },
+            'user_party_info':{PartyUsers,'photos:Array:照片数据'} # PartyUsers模型的全部字段叠加部分其他字段
+        }
+    }
+
     def get(self, request, data):
         '''这是request的get方法'''
         return 
@@ -185,7 +199,6 @@ class api_login(Api):
 
 ### 传入的 request 说明
 > - 正常情况下，传入的request就是当前请求的reqeust
-> - 如果使用`get_api_result_json`或`get_api_result_response`方法调用业务接口代码的时候，如果没有传入当前request，函数会伪造一个虚假的request，只包含一个method属性，所以在业务代码中，我们不推荐直接使用request来处理问题。
 
 ### 传入的 data 说明
 > - data对象就是校验转换后的参数dict，数据内容可以通过属性访问，例如：data.name
@@ -193,7 +206,7 @@ class api_login(Api):
 
 
 ## 方法组件
-### get_api_result_json 方法
+### get_api_result_json 方法（将删除）
 ::: tip
 - 直接调用业务代码类，获取返回数据和状态码
 - 请注意：由于绕开了参数监测，所有参数都必须填写在data中，没有的用None填写
@@ -225,7 +238,7 @@ def hello_world(url):
 :::
 
 
-### get_api_result_response 方法
+### get_api_result_response 方法（将删除）
 ::: tip
 - 直接调用业务代码类，获取返回响应包response
 - 请注意：由于绕开了参数监测，所有参数都必须填写在data中，没有的用None填写

@@ -50,7 +50,6 @@ af = ApiShop(conf,
         # 'debug':False,
     })
 
-from src.api_shop import get_api_result_json
 from business_code.test.abc import api_login
 
 

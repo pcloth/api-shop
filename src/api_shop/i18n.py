@@ -53,7 +53,8 @@ class i18n_init():
             'chinese': '中文',
             'cellphone': '手机号',
             'idcard':'身份证',
-
+            "Django's independent fields must use the ApiResponseModelFields class":'django的独立字段必须使用ApiResponseModelFields类',
+            "Please use the ApiShop.api_run instance method instead of this method, this method will be removed in later versions!!":"请使用ApiShop.api_run实例方法替代本方法，后期版本将移除本方法!!",
         }
     }
 
