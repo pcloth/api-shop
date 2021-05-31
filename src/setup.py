@@ -2,9 +2,10 @@
 # coding=utf-8
 
 from setuptools import setup, find_packages
-import re, ast
+import re, ast, pathlib
 
-desc = open('../README.MD', encoding='utf-8').read()
+
+
 _version_re = re.compile(r'__version__\s+=\s+(.*)')
 
 with open('api_shop/__init__.py', 'rb') as f:
@@ -19,7 +20,7 @@ setup(
     description=(
         'RESTful api shop for django or flask or bottle'
     ),
-    long_description=desc,
+    long_description=pathlib.Path('README.MD').read_text(encoding='utf-8'),
     long_description_content_type='text/markdown',
     author='pcloth',
     author_email='pcloth@gmail.com',
@@ -39,9 +40,6 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
         'Programming Language :: Python :: Implementation',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',

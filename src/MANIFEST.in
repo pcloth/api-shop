@@ -1,2 +1,3 @@
+include README.MD
 recursive-include api_shop/ *
 recursive-include api_shop/static *
