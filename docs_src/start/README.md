@@ -27,6 +27,33 @@ conf = [
 ]
 
 ```
+
+### 接口配置说明
+
+|键|类型| 说明 | 例子 |
+|---|---|---|---|
+|url| str/list | 接口访问的url，支持list包裹多个url，也支持<参数名>模式，url中添加<参数名>的话，方法参数列表中必须要包含该参数，并指定`required=True`| 'login','user/<id>|
+|class| str/Class对象 | 为字符串时，是`Api接口继承对象`的路径，为对象时就是该`Api接口继承对象`| account.views.api_login |
+|methods| dict | 这个对象包含了每个接口可以接受的方法和参数 | key可以为GET/POST/PUT/PATCH/PUT/DELETE等http支持的方法 |
+
+#### methods配置说明
+::: tips
+单个methods的value为一个list对象，其中描述了该方法支持的参数
+:::
+|键|类型| 说明 | 例子 |
+|---|---|---|---|
+|name|str|参数名字| username|
+|type|object| 参数类型，目前支持int，float，list，dict，set，tuple，bool，也支持自定义类型和其他可以被转换的类型 | 详情可以查看data_format扩展 |
+|required|bool|是否必要参数，如果为True，用户请求中没有该参数将会被拦截|缺省为`False`|
+|min|int|参数的最小值(int)或者最小长度(str/list/set/tuple)，用户提交小于或者短于这个值的参数，将会被拦截| 5 |
+|max|int|参数的最大值(int)或者最大长度(str/list/set/tuple)，用户提交大于或者超过长度的参数，将会被拦截| 5 |
+|default|`同类型参数`、`方法`、`类`| 比如type=int的一个参数，default=1的时候，用户如果不提交参数，将会自动填充1，如果default为一个方法或者类，将会自动填充`运行`/`实例化`结果||
+|options|list|这是参数的可选项，用户提交的参数必须在可选项中，否则将会被拦截|options=['a','c'] 表示用户只能提交该参数的值为a或者c|
+|description|str|参数的描述，用来给前端开发人员的参考说明||
+
+
+
+
 ## 例子
 
 ### django
