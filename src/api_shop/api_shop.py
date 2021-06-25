@@ -6,7 +6,6 @@ api 工厂
 by pcloth
 '''
 import json, traceback, os, re, time, importlib
-
 from .i18n import i18n_init
 from .__init__ import __version__
 from .url_parse import parse_rule
@@ -352,7 +351,7 @@ class Api():
 
 
 class ApiShop():
-    def __init__(self, conf, options=None):
+    def __init__(self, conf=None, options=None):
         '''
         配置api工厂参数，格式如下：
         conf = [
@@ -374,6 +373,8 @@ class ApiShop():
             
         }
         '''
+        if not conf:
+            conf = []
         
         self.i18n = i18
 
@@ -427,11 +428,8 @@ class ApiShop():
         
 
         self.conf = self.__make_model(conf)
-        
-        self.api_count = len(self.conf)
         self.__init_url_rules()
-
-        
+     
     def __class_to_json(self, methods):
         '''将python的dict数据对象类切换成字符串'''
         string = str(methods) #.__str__()
@@ -654,48 +652,37 @@ class ApiShop():
                 return key, value_dict
         return None,None
 
-    def __init_url_rules(self):
-        # _converter_args_re = re.compile(r'''
-        #     ((?P<name>\w+)\s*=\s*)?
-        #     (?P<value>
-        #         True|False|
-        #         \d+.\d+|
-        #         \d+.|
-        #         \d+|
-        #         [\w\d_.]+|
-        #         [urUR]?(?P<stringval>"[^"]*?"|'[^']*')
-        #     )\s*,
-        # ''' , re.VERBOSE | re.UNICODE)
+    def __add_url_rules(self,rule):
+        this_rule = []
         _converter_args_re = re.compile(r'''
         (?P<value>
             (\w+)
         )''' ,re.VERBOSE | re.UNICODE)
+        for converter, arguments, variable in parse_rule(rule):
+            if converter is None:
+                # 静态地址
+                this_rule.append({
+                    'regex': re.escape(variable),
+                    'type':'static'
+                    })
+            else:
+                # 动态查询
+                this_rule.append({
+                    'regex': _converter_args_re,
+                    'variable':variable,
+                    'converter':converter,
+                    'type':'variable'
+                    })
+        self.rule_maps.append({
+            'line': this_rule,
+            'key':rule
+        })
 
+    def __init_url_rules(self):
         self.rule_maps = [] # 规则映射表
         for rule in self.url_dict.keys():
-            index = 0
-            this_rule = []
-            for converter, arguments, variable in parse_rule(rule):
-                if converter is None:
-                    # 静态地址
-                    this_rule.append({
-                        'regex': re.escape(variable),
-                        'type':'static'
-                        })
-                else:
-                    # 动态查询
-                    this_rule.append({
-                        'regex': _converter_args_re,
-                        'variable':variable,
-                        'converter':converter,
-                        'type':'variable'
-                        })
-                index = index + 1
-            self.rule_maps.append({
-                'line': this_rule,
-                'key':rule
-            })
-    
+            self.__add_url_rules(rule)
+
     def get_parameter(self, request):
         # 获取参数
         data = {}
@@ -880,6 +867,32 @@ class ApiShop():
         ret = model(request, data, json, method)
         return ret
 
+    def before_running(self, **kwargs):
+        '''运行前钩子'''
+
+    def after_running(self, **kwargs):
+        '''运行后钩子'''
+
+    def add_api(self, name, url, methods):
+        '''装饰器添加接口'''
+        def wrap(cls):
+            conf = self.__make_model([{
+                'url':url,
+                'class':cls,
+                'name':name,
+                'methods':methods
+            }])
+            self.conf += conf
+            urllist = []
+            if type(url)==str:
+                urllist.append(url)
+            else:
+                urllist = url
+            for u in urllist:
+                self.__add_url_rules(u)
+            return cls
+        return wrap
+
     def api_entry(self,request,*url):
         '''api入口'''
         model, key, value_dict = self.__find_api_function(url)
@@ -890,11 +903,21 @@ class ApiShop():
             errmsg, data = self.verify_parameter(request, methons.get(request.method),value_dict)
             if errmsg:
                 return return_response(errmsg)
+            if hasattr(self,'before_running'):
+                before_running_ret = self.before_running(
+                    request=request, data=data, model=model, key=key)
+                if before_running_ret:
+                    return before_running_ret
+            ret = model(request, data)
+            if hasattr(self,'after_running'):
+                new_ret = self.after_running(request=request, response=ret,  model=model, key=key)
+                if new_ret:
+                    return new_ret
+            return ret
         else:
             return return_response(_('no such interface method'))
    
-        ret = model(request, data)
-        return ret
+        
 
     def render_documents(self,request,*url):
         '''渲染文档'''

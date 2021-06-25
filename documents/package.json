@@ -1,0 +1,14 @@
+{
+  "name": "documents",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "pcloth",
+  "license": "MIT",
+  "scripts": {
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
+  },
+  "devDependencies": {
+    "vuepress": "^2.0.0-beta.19"
+  }
+}

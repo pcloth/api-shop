@@ -7,3 +7,5 @@ build/
 __pycache__/
 node_modules/
 src_template/
+.cache
+.temp
