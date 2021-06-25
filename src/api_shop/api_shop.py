@@ -351,7 +351,7 @@ class Api():
 
 
 class ApiShop():
-    def __init__(self, conf, options=None):
+    def __init__(self, conf=None, options=None):
         '''
         配置api工厂参数，格式如下：
         conf = [
@@ -373,6 +373,8 @@ class ApiShop():
             
         }
         '''
+        if not conf:
+            conf = []
         
         self.i18n = i18
 

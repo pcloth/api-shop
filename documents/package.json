@@ -4,7 +4,7 @@
   "main": "index.js",
   "author": "pcloth",
   "license": "MIT",
-   "scripts": {
+  "scripts": {
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs"
   },

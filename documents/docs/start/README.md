@@ -53,20 +53,6 @@ conf = [
 
 
 
-## 生命周期
-::: tip 
-让你更加的专注到业务上，其他的事情交给api-shop
-:::
-![An image](/api-shop.png)
-
-### 钩子的使用
-::: tip
-我们提供了before_running和after_running两个钩子，你只需要继承ApiShop并复写它们就可以使用
-:::
-
-
-
-
 ## 例子
 
 ### django

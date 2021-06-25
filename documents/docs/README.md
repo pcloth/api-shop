@@ -1,9 +1,10 @@
 ---
 home: true
 heroImage: /logo.png
+description: '这是一个Api控制模组，让你快速开始业务代码。'
 actions:
-  - text: 快速上手 →
-    link: /start/
+  - text: 了解Api-shop →
+    link: /introduction/
     type: primary
 features:
   - title: 简洁
