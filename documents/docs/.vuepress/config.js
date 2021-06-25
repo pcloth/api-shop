@@ -5,11 +5,19 @@ module.exports = {
     themeConfig: {
         repo: 'pcloth/api-shop',
         logo: 'https://pcloth.gitee.io/api-shop/logo.png',
-
+        contributors: false,
         navbar: [
             { text: '首页', link: '/' },
             { text: '介绍', link: '/introduction/' },
             { text: '快速上手', link: '/start/' },
+            {
+                text: '组件', children: [
+                    '/components/ApiShop.md',
+                    '/components/Api.md',
+                    '/components/func.md',
+                    '/components/data_format.md',
+                ]
+            },
         ]
     },
 }
