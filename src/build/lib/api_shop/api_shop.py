@@ -5,17 +5,22 @@ api 工厂
 可以让用户用数据来配置api模块，并自动校验参数合法性和生成文档页面。
 by pcloth
 '''
-import json, traceback, os, re, time, importlib
-
+import json
+import traceback
+import os
+import re
+import time
+import importlib
 from .i18n import i18n_init
 from .__init__ import __version__
 from .url_parse import parse_rule
-from .autofill import auto_fill,check_fill_methods
+from .autofill import auto_fill, check_fill_methods
 from werkzeug.local import LocalStack, LocalProxy
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 i18 = i18n_init('zh')
 _ = i18._
+
 
 class Namespace(dict):
     def __getattr__(self, name):
@@ -25,12 +30,15 @@ class Namespace(dict):
             raise AttributeError(_('no attributes found')+'{}'.format(name))
 
     def __setattr__(self, name, value):
-        self.update({name:value})
+        self.update({name: value})
+
 
 class ApiInit(Namespace):
     '''接口初始化内，用于内部传递状态和配置加载多框架支持'''
-    
+
 # 框架基础配置
+
+
 class FW(Namespace):
     # 配置框架需要使用的方法
     # 例如 if api.framework.name=='django':api.framework.JsonResponse
@@ -40,9 +48,9 @@ class FW(Namespace):
             'django.http': ['JsonResponse', 'HttpResponse'],
         },
         'flask': {
-            'flask': ['render_template_string','jsonify']
+            'flask': ['render_template_string', 'jsonify']
         },
-        'bottle':{
+        'bottle': {
             'bottle': ['template', 'HTTPResponse']
         }
     }
@@ -51,37 +59,37 @@ class FW(Namespace):
     framework_return = {
         'django': {
             'json': 'JsonResponse',
-            'json_status_code_in_func':True,
+            'json_status_code_in_func': True,
             'http': 'HttpResponse',
-            'http_status_code_in_func':True,
+            'http_status_code_in_func': True,
             'template': 'HttpResponse'
         },
         'flask': {
             'json': 'jsonify',
-            'json_status_code_in_func':False,
+            'json_status_code_in_func': False,
             'http': None,
-            'http_status_code_in_func':False,
-            'template':None # 直接返回字符串
+            'http_status_code_in_func': False,
+            'template': None  # 直接返回字符串
         },
         'bottle': {
             'json': 'HTTPResponse',
-            'json_status_code_in_func': True, # json的状态码是否在方法内
-            
+            'json_status_code_in_func': True,  # json的状态码是否在方法内
+
             'http': 'HTTPResponse',
-            'http_status_code_in_func':True, # http的状态码是否在方法内
-            'template':None # 直接返回字符串
+            'http_status_code_in_func': True,  # http的状态码是否在方法内
+            'template': None  # 直接返回字符串
         },
 
     }
 
-    def template(self,string):
+    def template(self, string):
         # 返回模板字符串
         if self.func_dict.get('template'):
             return self[self.func_dict.get('template')](string)
         else:
             return string
 
-    def json(self, data,status_code=200):
+    def json(self, data, status_code=200):
         # 返回json字符串
         model_name = self.func_dict.get('json')
         flag = self.func_dict.get('json_status_code_in_func')
@@ -91,7 +99,7 @@ class FW(Namespace):
             else:
                 return self[model_name](data), status_code
         else:
-            return data,status_code
+            return data, status_code
 
     def http(self, data, status_code=200):
         # 返回http
@@ -104,15 +112,14 @@ class FW(Namespace):
                 return self[model_name](data), status_code
         else:
             return data, status_code
-            
-        
 
     def load_fw_model(self, fwname, err_out=False):
         '''加载框架的方法'''
         if not self.framework_models.get(fwname):
             # 暂时不支持这个框架
-            raise BaseException(_('Not support') + ' {} , ('.format(fwname) + _('supported framework as follows:') + ' , '.join(self.framework_order) + ')')
-            
+            raise BaseException(_('Not support') + ' {} , ('.format(fwname) + _(
+                'supported framework as follows:') + ' , '.join(self.framework_order) + ')')
+
         current_fw = self.framework_models.get(fwname)
         haserr = False
         for path in current_fw:
@@ -120,17 +127,17 @@ class FW(Namespace):
                 model = importlib.import_module(path)
             except:
                 return
-            
+
             for key in current_fw[path]:
                 if not hasattr(model, key):
                     if err_out:
-                        raise BaseException(_('Framework version is not compatible.'))
+                        raise BaseException(
+                            _('Framework version is not compatible.'))
                     else:
                         haserr = True
                 self[key] = getattr(model, key)
         if not haserr:
             self.name = fwname
-        
 
     def __init__(self, fwname=None):
         self.name = None
@@ -142,16 +149,20 @@ class FW(Namespace):
                 self.load_fw_model(fwname)
         if not self.name:
             if not fwname:
-                raise BaseException(_('supported framework as follows:') + ' , '.join(self.framework_order))
+                raise BaseException(
+                    _('supported framework as follows:') + ' , '.join(self.framework_order))
             else:
                 raise BaseException(_('Did not find the framework') + fwname)
 
         self.func_dict = self.framework_return.get(self.name)
-       
+
+# 用model来制作返回值说明
+
 
 class ApiResponseModelFields():
     '''用来包含模型的部分字段'''
-    def __init__(self, model, fields:list=None, return_type=set):
+
+    def __init__(self, model, fields: list = None, return_type=set):
         self.model = model
         self.type = return_type
         self.fwname = ''
@@ -164,9 +175,9 @@ class ApiResponseModelFields():
     def __new__(cls, *args, **kwargs):
         model = kwargs.get('model')
         fields = kwargs.get('fields')
-        if len(args)>=1:
+        if len(args) >= 1:
             model = args[0]
-        if len(args)>=2:
+        if len(args) >= 2:
             fields = args[1]
         if fields:
             return object.__new__(cls)
@@ -177,7 +188,7 @@ class ApiResponseModelFields():
         nameList = []
         for field in self.fields:
             key = None
-            if type(field)==str:
+            if type(field) == str:
                 # 传入的字符串描述字段名称
                 key = field
             elif self.fwname == 'django' and hasattr(field, 'field_name'):
@@ -203,15 +214,17 @@ class ApiResponseModelFields():
 
 api = ApiInit()
 
+
 class ApiDataClass(Namespace):
     '''api-data类'''
+
     def __init__(self, data=None):
         if data:
             self.update(data)
 
     def dict(self):
         return self
-    
+
     def to_dict(self):
         return self
 
@@ -220,6 +233,7 @@ class ApiDataClass(Namespace):
 
     def is_ajax(self):
         return False
+
 
 def get_api_result_json(api_class, method, data=None, request=None, not200=True):
     '''
@@ -233,20 +247,21 @@ def get_api_result_json(api_class, method, data=None, request=None, not200=True)
 
     '''
     print(_('Please use the ApiShop.api_run instance method instead of this method, this method will be removed in later versions!!'))
-    response = get_api_result_response(api_class, method, data,request,not200)
+    response = get_api_result_response(
+        api_class, method, data, request, not200)
     if not response:
         # 无结果
         return None
-    
+
     status_code = getattr(response, 'status_code')
-    if not200==False and status_code!=200:
+    if not200 == False and status_code != 200:
         raise BaseException(_('api-shop return result is not success.'))
 
     fw = api.get('framework')
     fwname = fw.get('name')
-    
+
     if fwname == 'flask':
-        if hasattr(response,'is_json') and response.is_json:
+        if hasattr(response, 'is_json') and response.is_json:
             ret = response.get_json()
         else:
             ret = None
@@ -259,7 +274,8 @@ def get_api_result_json(api_class, method, data=None, request=None, not200=True)
     if fwname == 'bottle':
         ret = response.body
 
-    return ret,status_code
+    return ret, status_code
+
 
 def get_api_result_response(api_class, method, data=None, request=None, not200=True):
     '''
@@ -284,19 +300,19 @@ def get_api_result_response(api_class, method, data=None, request=None, not200=T
     else:
         request = ApiDataClass(data)
         request.method = method
-    
-    
-    tup = api_class(request,d_)
+
+    tup = api_class(request, d_)
 
     if type(tup) == tuple:
         status_code = tup[1]
         res = tup[0]
-    elif hasattr(tup,'status_code'):
+    elif hasattr(tup, 'status_code'):
         res = tup
         status_code = getattr(tup, 'status_code')
-    if not200==False and status_code!=200:
+    if not200 == False and status_code != 200:
         raise BaseException(_('api-shop return result is not success.'))
     return res
+
 
 def return_response(msg=None, status_code=400):
     # 返回错误信息
@@ -308,6 +324,8 @@ def return_response(msg=None, status_code=400):
         ret.update({'status': api.bad_request_error_status})
         status_code = 200
     return api.framework.json(ret, status_code)
+
+
 class Api():
     '''制作api接口的最终方法时，请继承本类，用法类似Flask-RESTful的Resource
     例子：
@@ -325,15 +343,16 @@ class Api():
         def patch(self,request,data):
             # 同上
     '''
+
     def __new__(self, request, data=None, json=None, method=None):
         if not method:
             method = request.method
         method = method.lower()
         if hasattr(self, method):
-            func = getattr(self,method)
+            func = getattr(self, method)
             retdata = func(self, request, data)
             status_code = 200
-            if type(retdata)==tuple:
+            if type(retdata) == tuple:
                 ret = retdata[0]
                 status_code = retdata[1] or 200
             else:
@@ -348,11 +367,11 @@ class Api():
             else:
                 return api.framework.http(ret, status_code)
         else:
-            return return_response(_('not found in conf')+ '{}'.format(method))
+            return return_response(_('not found in conf') + '{}'.format(method))
 
 
 class ApiShop():
-    def __init__(self, conf, options=None):
+    def __init__(self, conf=None, options=None):
         '''
         配置api工厂参数，格式如下：
         conf = [
@@ -371,27 +390,30 @@ class ApiShop():
 
         options = {
             'base_url':'/api/',# 基础url，用以组合给前端的api url
-            
+
         }
         '''
-        
+        if not conf:
+            conf = []
+
         self.i18n = i18
 
         self.options = {
-                'version':__version__,
-                'base_url':'/api/', # 基础url，用以组合给前端的api url
-                'bad_request': True,  # 参数bad_request如果是真，发生错误返回一个坏请求给前端，否则都返回200的response，里面附带status=error和msg附带错误信息
-                'bad_request_error_status':'error',
-                'document': BASE_DIR + '/api_shop/static/document.html',  # 文档路由渲染的模板
-                'lang': 'en',
-                'debug':True, # 默认开启调试信息
-                'auto_create_folder': False,  # 自动创建文件夹
-                'auto_create_file': False,  # 自动创建文件
-                'auto_create_class': False,  # 自动创建类
-                'auto_create_method': False,  # 自动创建方法
-                
-            }
-        
+            'version': __version__,
+            'base_url': '/api/',  # 基础url，用以组合给前端的api url
+            # 参数bad_request如果是真，发生错误返回一个坏请求给前端，否则都返回200的response，里面附带status=error和msg附带错误信息
+            'bad_request': True,
+            'bad_request_error_status': 'error',
+            'document': BASE_DIR + '/api_shop/static/document.html',  # 文档路由渲染的模板
+            'lang': 'en',
+            'debug': True,  # 默认开启调试信息
+            'auto_create_folder': False,  # 自动创建文件夹
+            'auto_create_file': False,  # 自动创建文件
+            'auto_create_class': False,  # 自动创建类
+            'auto_create_method': False,  # 自动创建方法
+
+        }
+
         self.document_version = ''
         if options:
             self.options.update(options)
@@ -401,8 +423,10 @@ class ApiShop():
             else:
                 self.document_name = BASE_DIR + '/api_shop/static/document.html'
 
-            self.document_version = time.ctime(os.stat(self.document_name).st_mtime)
-            self.document = open(self.document_name,mode='r',encoding='utf-8').read()
+            self.document_version = time.ctime(
+                os.stat(self.document_name).st_mtime)
+            self.document = open(self.document_name,
+                                 mode='r', encoding='utf-8').read()
         except:
             self.document = '<h1>' + _('document template not found') + '</h1>'
 
@@ -410,33 +434,29 @@ class ApiShop():
         api.framework = FW(self.options.get('framework'))
 
         # 扩展语言包
-        if type(self.options.get('lang_pack'))==dict:
+        if type(self.options.get('lang_pack')) == dict:
             self.i18n.lang.update(self.options.get('lang_pack'))
-        
+
         # 切换语言
         self.i18n.lang_name = self.options.get('lang')
         api.BAD_REQUEST = self.options.get('bad_request', True)
-        api.bad_request_error_status = self.options.get('bad_request_error_status')
-
+        api.bad_request_error_status = self.options.get(
+            'bad_request_error_status')
 
         # 当前加载的url和function的字典
-        self.url_dict = {}  
+        self.url_dict = {}
         # url方法字典
         self.url_methods = {}
         self.api_data = []
-        
 
         self.conf = self.__make_model(conf)
-        
-        self.api_count = len(self.conf)
         self.__init_url_rules()
 
-        
     def __class_to_json(self, methods):
         '''将python的dict数据对象类切换成字符串'''
-        string = str(methods) #.__str__()
+        string = str(methods)  # .__str__()
         # 替换类名称
-        class_list = re.compile(r"""<class '[\w|\.]*'>""",0).findall(string)
+        class_list = re.compile(r"""<class '[\w|\.]*'>""", 0).findall(string)
         for line in class_list:
             string = string.replace(line, "'{}'".format(line.split("'")[1]))
 
@@ -444,16 +464,16 @@ class ApiShop():
         others = re.compile(r'''<[\s|\S.]*>''', 0).findall(string)
         for line in others:
             try:
-                string = string.replace(line, "'{}'".format(line.split(" ")[1]))
+                string = string.replace(
+                    line, "'{}'".format(line.split(" ")[1]))
             except:
                 string = string.replace(line, "'{}'".format(line))
-            
 
         return eval(string)
 
     def __dynamic_import(self, thisconf):
         name = thisconf['class']
-        if type(name)!=str:
+        if type(name) != str:
             # 直接传入的对象
             return name
         components = name.split('.')
@@ -464,7 +484,8 @@ class ApiShop():
         except Exception as ie:
             if self.options.get('debug') == True:
                 print('\n\n*******  api-shop errmsg  *******\n')
-                print('currnet_api:\nurl: {}\nclass: {}\n'.format(thisconf.get('url'),thisconf.get('class')))
+                print('currnet_api:\nurl: {}\nclass: {}\n'.format(
+                    thisconf.get('url'), thisconf.get('class')))
                 traceback.print_exc()
                 if auto_fill(thisconf, self.options) == True:
                     # 自动生成文件或者方法，成功后重试一次。
@@ -478,7 +499,7 @@ class ApiShop():
             # model = dynamic_import(conf[i]['class'])
             model = self.__dynamic_import(conf[i])
             model.api_run = self.api_run
-            if type(conf[i]['class'])!=str:
+            if type(conf[i]['class']) != str:
                 # 直接使用对象
                 conf[i]['class'] = self.__class_to_json(conf[i]['class'])
             if type(conf[i]['url']) == list:
@@ -498,49 +519,52 @@ class ApiShop():
                     conf[i]['url']: conf[i]['methods'],
                 })
             conf[i]['methods'] = self.__class_to_json(conf[i]['methods'])
-            
-            if hasattr(model,'__doc__'):
+
+            if hasattr(model, '__doc__'):
                 # 接口文档说明
                 conf[i]['document'] = getattr(model, '__doc__')
-            conf[i]['methods_documents'] = {} # 方法文档说明
-            conf[i]['methods_return'] = {} # 方法返回值说明
+            conf[i]['methods_documents'] = {}  # 方法文档说明
+            conf[i]['methods_return'] = {}  # 方法返回值说明
             if hasattr(model, 'response_docs'):
                 docs_obj = getattr(model, 'response_docs')
                 response_docs = {}
                 for key in ['get', 'post', 'delete', 'put', 'patch']:
                     if docs_obj.get(key):
                         nodes = docs_obj.get(key)
-                        roots = self.__find_response_docs(key.upper(),nodes)
-                        response_docs.update({key.upper():roots})
+                        roots = self.__find_response_docs(key.upper(), nodes)
+                        response_docs.update({key.upper(): roots})
                 conf[i]['methods_return'] = response_docs
             if self.options.get('auto_create_method'):
-                check_fill_methods(model,conf[i])
+                check_fill_methods(model, conf[i])
             for key in ['get', 'post', 'delete', 'put', 'patch']:
                 # 把业务类子方法的文档添加到数据表
                 if hasattr(model, key):
                     mt = getattr(model, key)
                     if hasattr(mt, '__doc__'):
-                        conf[i]['methods_documents'].update({key.upper(): getattr(mt, '__doc__')})
+                        conf[i]['methods_documents'].update(
+                            {key.upper(): getattr(mt, '__doc__')})
 
         return conf
 
-    def __mk_django_model_field_doc(self,field):
+    def __mk_django_model_field_doc(self, field):
         # 把django字段模型提取成文档字段
-        if not hasattr(field,'column'):
-            raise BaseException(_("Django's independent fields must use the ApiResponseModelFields class"))
+        if not hasattr(field, 'column'):
+            raise BaseException(
+                _("Django's independent fields must use the ApiResponseModelFields class"))
         return {
-            'name':field.column,
-            'type':type(field).__name__,
-            'desc':field.verbose_name,
+            'name': field.column,
+            'type': type(field).__name__,
+            'desc': field.verbose_name,
         }
-    def __mk_flask_model_field_doc(self,field):
+
+    def __mk_flask_model_field_doc(self, field):
         return {
-            'name':field.name,
-            'type':str(field.type),
-            'desc':field.comment,
+            'name': field.name,
+            'type': str(field.type),
+            'desc': field.comment,
         }
-    
-    def __find_response_docs(self,key,docs_node):
+
+    def __find_response_docs(self, key, docs_node):
         # 容器层
         children = []
         type_ = ''
@@ -550,41 +574,41 @@ class ApiShop():
             # 手写描述规定格式：key:type:desc
             # 比如photos:Array:照片url字符串组成的列表数据
             arr = docs_node.split(':')
-            if len(arr)==3:
+            if len(arr) == 3:
                 key = arr[0]
                 type_ = arr[1]
-                desc= arr[2]
+                desc = arr[2]
             else:
                 desc = docs_node
         elif type(docs_node) == dict:
             # 字典容器递归
-            type_='Object'
-            for k,v in docs_node.items():
-                this = self.__find_response_docs(k,v)
+            type_ = 'Object'
+            for k, v in docs_node.items():
+                this = self.__find_response_docs(k, v)
                 if type(this) == list:
                     children += this
                 elif type(this) == dict:
                     children.append(this)
         elif type(docs_node) == set:
             # 集合，用来表示单个对象
-            type_='Object'
+            type_ = 'Object'
             for v in docs_node:
-                this = self.__find_response_docs(key,v)
+                this = self.__find_response_docs(key, v)
                 if type(this) == list:
                     children += this
                 elif type(this) == dict:
                     children.append(this)
         elif type(docs_node) == list:
             # 列表对象,包含可能多组字段
-            type_='Array'
+            type_ = 'Array'
             for v in docs_node:
-                this = self.__find_response_docs(key,v)
+                this = self.__find_response_docs(key, v)
                 if type(this) == list:
                     children += this
                 elif type(this) == dict:
                     children.append(this)
         elif 'django.db.models' in str_type:
-            if hasattr(docs_node,'_meta'):
+            if hasattr(docs_node, '_meta'):
                 for obj in docs_node._meta.fields:
                     children.append(self.__mk_django_model_field_doc(obj))
             else:
@@ -594,7 +618,7 @@ class ApiShop():
         elif 'ApiResponseModelFields' in str_type:
             # 解析部分字段
             fields = docs_node.get_fields()
-            this = self.__find_response_docs(key,fields)
+            this = self.__find_response_docs(key, fields)
             return this['children']
         elif 'sqlalchemy.sql.schema.Column' in str_type or 'sqlalchemy.orm.attributes' in str_type:
             # flask 单独字段
@@ -605,10 +629,10 @@ class ApiShop():
                 for obj in docs_node.__table__._columns:
                     children.append(self.__mk_flask_model_field_doc(obj))
         return {
-            'name':key,
-            'type':type_,
-            'desc':desc,
-            'children':children
+            'name': key,
+            'type': type_,
+            'desc': desc,
+            'children': children
         }
 
     def __not_find_url_function(self, request):
@@ -622,8 +646,8 @@ class ApiShop():
         key, value_dict = self.__find_url_rule(url)
         model = self.url_dict.get(key)
         if model:
-            return model,key,value_dict
-        return self.__not_find_url_function,None,None
+            return model, key, value_dict
+        return self.__not_find_url_function, None, None
 
     def __find_api_methons(self, url):
         # 查找api所指向的方法
@@ -640,9 +664,9 @@ class ApiShop():
                 m = re.match(rule['regex'], url_)
                 if not m:
                     break
-                pos,end = m.span()
-                url_ = url_[end:] # 截断url
-                if rule['type']=='variable':
+                pos, end = m.span()
+                url_ = url_[end:]  # 截断url
+                if rule['type'] == 'variable':
                     # 动态查找
                     value_dict.update({
                         rule['variable']: m.group(0)  # {'value':'test'}
@@ -652,62 +676,51 @@ class ApiShop():
                 continue
             else:
                 return key, value_dict
-        return None,None
+        return None, None
 
-    def __init_url_rules(self):
-        # _converter_args_re = re.compile(r'''
-        #     ((?P<name>\w+)\s*=\s*)?
-        #     (?P<value>
-        #         True|False|
-        #         \d+.\d+|
-        #         \d+.|
-        #         \d+|
-        #         [\w\d_.]+|
-        #         [urUR]?(?P<stringval>"[^"]*?"|'[^']*')
-        #     )\s*,
-        # ''' , re.VERBOSE | re.UNICODE)
+    def __add_url_rules(self, rule):
+        this_rule = []
         _converter_args_re = re.compile(r'''
         (?P<value>
             (\w+)
-        )''' ,re.VERBOSE | re.UNICODE)
+        )''', re.VERBOSE | re.UNICODE)
+        for converter, arguments, variable in parse_rule(rule):
+            if converter is None:
+                # 静态地址
+                this_rule.append({
+                    'regex': re.escape(variable),
+                    'type': 'static'
+                })
+            else:
+                # 动态查询
+                this_rule.append({
+                    'regex': _converter_args_re,
+                    'variable': variable,
+                    'converter': converter,
+                    'type': 'variable'
+                })
+        self.rule_maps.append({
+            'line': this_rule,
+            'key': rule
+        })
 
-        self.rule_maps = [] # 规则映射表
+    def __init_url_rules(self):
+        self.rule_maps = []  # 规则映射表
         for rule in self.url_dict.keys():
-            index = 0
-            this_rule = []
-            for converter, arguments, variable in parse_rule(rule):
-                if converter is None:
-                    # 静态地址
-                    this_rule.append({
-                        'regex': re.escape(variable),
-                        'type':'static'
-                        })
-                else:
-                    # 动态查询
-                    this_rule.append({
-                        'regex': _converter_args_re,
-                        'variable':variable,
-                        'converter':converter,
-                        'type':'variable'
-                        })
-                index = index + 1
-            self.rule_maps.append({
-                'line': this_rule,
-                'key':rule
-            })
-    
+            self.__add_url_rules(rule)
+
     def get_parameter(self, request):
         # 获取参数
         data = {}
         # 获取django的request数据
-        if api.framework.name =='django':
+        if api.framework.name == 'django':
             if request.GET:
-                for k,v in request.GET.items():
+                for k, v in request.GET.items():
                     if k.endswith('[]'):
                         # 从get传递过来的同名参数，需要重组成list对象
                         v = request.GET.getlist(k)
                         k = k[:-2]
-                    data.update({k:v})
+                    data.update({k: v})
             elif request.POST:
                 data.update(request.POST.dict())
             elif request.is_ajax():
@@ -720,7 +733,7 @@ class ApiShop():
                 except:
                     pass
         if api.framework.name == 'flask':
-            if request.args:                
+            if request.args:
                 data.update(request.args.to_dict())
             elif request.form:
                 data.update(request.form.to_dict())
@@ -733,14 +746,14 @@ class ApiShop():
                 except:
                     pass
         if api.framework.name == 'bottle':
-            if request.GET:                
+            if request.GET:
                 data.update(request.GET)
             if request.POST:
                 data.update(request.POST)
             if request.json:
                 data.update(request.json)
         return data
-      
+
     def __verify(self, conf, name, value):
         # 校验数据并转换格式
         required_ = conf.get('required')
@@ -761,23 +774,22 @@ class ApiShop():
                 value = default_
 
          # 检查必要值
-        if required_ == True and not value and value!=0:
+        if required_ == True and not value and value != 0:
             return _('parameter')+' {} '.format(name)+_('is required'), None
 
         if value == '' and type_ != str:
             # 如果是空字符串，但是要求类型不是字符串，就转换成None
             value = None
-            
-        # 检查空值，这个时候因为有些空值还处于字符串形态，比如'[]'，所以有可能会被跳过        
+
+        # 检查空值，这个时候因为有些空值还处于字符串形态，比如'[]'，所以有可能会被跳过
         if not value and value != 0:
             if required_:
                 return _('parameter')+' {} '.format(name)+_('can not be empty'), None,
             else:
                 return None, value
-        
-            
+
         # 检查并转换类型
-        if not_converting==False and type_ and type(value) != type_:
+        if not_converting == False and type_ and type(value) != type_:
             try:
                 if type_ in [list, dict, set, tuple]:
                     # 容器类，json验证后转换
@@ -800,10 +812,10 @@ class ApiShop():
             else:
                 return None, value
         # 检查可选项目
-        if options and type(options)==list:
+        if options and type(options) == list:
             if value not in options:
                 return _('parameter') + ' {} '.format(name) + _('must be in the list of options') + ' : {}'.format(json.dumps(options)), None
-                
+
         # 检查最小值/长度
         if min_:
             if type(value) in [str, list, dict, set]:
@@ -829,10 +841,10 @@ class ApiShop():
                 # 其他自定义类型
                 if value > type_(max_):
                     return _('parameter')+' {} '.format(name)+_('maximum value')+' {} '.format(max_), None
-        
+
         return None, value
 
-    def verify_parameter(self, request, par_conf,value_dict=None,parameter=None):
+    def verify_parameter(self, request, par_conf, value_dict=None, parameter=None):
         # 校验参数合法性，并转换成参数对象
         if type(par_conf) != list:
             return _('The wrong configuration, methons must be loaded inside the list container.'), None
@@ -870,7 +882,8 @@ class ApiShop():
             par_conf = methons.get(method.upper())
             if parameter is None:
                 parameter = {}
-            errmsg, data = self.verify_parameter(None, par_conf,value_dict=value_dict,parameter=parameter)
+            errmsg, data = self.verify_parameter(
+                None, par_conf, value_dict=value_dict, parameter=parameter)
         else:
             errmsg = _('no such interface method')
         if errmsg:
@@ -880,31 +893,66 @@ class ApiShop():
         ret = model(request, data, json, method)
         return ret
 
-    def api_entry(self,request,*url):
+    def before_running(self, **kwargs):
+        '''运行前钩子'''
+
+    def after_running(self, **kwargs):
+        '''运行后钩子'''
+
+    def add_api(self, name, url, methods):
+        '''装饰器添加接口'''
+        def wrap(cls):
+            conf = self.__make_model([{
+                'url': url,
+                'class': cls,
+                'name': name,
+                'methods': methods
+            }])
+            self.conf += conf
+            urllist = []
+            if type(url) == str:
+                urllist.append(url)
+            else:
+                urllist = url
+            for u in urllist:
+                self.__add_url_rules(u)
+            return cls
+        return wrap
+
+    def api_entry(self, request, *url):
         '''api入口'''
         model, key, value_dict = self.__find_api_function(url)
         methons = self.__find_api_methons(key)
-        
+
         if methons and not methons.get(request.method) is None:
             # 有配置方法和参数，校验参数合法性，并转换参数
-            errmsg, data = self.verify_parameter(request, methons.get(request.method),value_dict)
+            errmsg, data = self.verify_parameter(
+                request, methons.get(request.method), value_dict)
             if errmsg:
                 return return_response(errmsg)
+            if hasattr(self, 'before_running'):
+                before_running_ret = self.before_running(
+                    request=request, data=data, model=model, key=key)
+                if before_running_ret:
+                    return before_running_ret
+            ret = model(request, data)
+            if hasattr(self, 'after_running'):
+                new_ret = self.after_running(
+                    request=request, response=ret,  model=model, key=key)
+                if new_ret:
+                    return new_ret
+            return ret
         else:
             return return_response(_('no such interface method'))
-   
-        ret = model(request, data)
-        return ret
 
-    def render_documents(self,request,*url):
+    def render_documents(self, request, *url):
         '''渲染文档'''
         if self.document_version != time.ctime(os.stat(self.document_name).st_mtime):
             # 如果文档发生变化，读取文档。
-            self.document = open(self.document_name, mode='r', encoding='utf-8').read()
+            self.document = open(self.document_name,
+                                 mode='r', encoding='utf-8').read()
         return api.framework.template(self.document)
- 
+
     def get_api_data(self, request, *url):
         '''返回给文档页面数据'''
-        return api.framework.json({'data': self.conf,'options':self.options})
-
-        
+        return api.framework.json({'data': self.conf, 'options': self.options})
