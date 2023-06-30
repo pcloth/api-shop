@@ -29,6 +29,7 @@ module.exports = {
             {
                 text: '组件', children: [
                     '/components/ApiShop.md',
+                    '/components/SingleApiShop.md',
                     '/components/Api.md',
                     '/components/func.md',
                     '/components/data_format.md',

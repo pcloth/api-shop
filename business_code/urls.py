@@ -2,7 +2,7 @@ from django.urls import path,re_path
 from django.http import JsonResponse
 from . import views
 
-from src.api_shop import ApiShop, Api
+from src.api_shop import ApiShop, Api, SingleApiShop
 from src.api_shop import data_format
 
 
@@ -15,7 +15,7 @@ conf = [
             'POST': [
                 {'name': 'username', 'type': data_format.regex(
                     r'^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){0,4}@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){0,4}$',name='邮箱'), 'required': True, 'min': 3, 'max': 24, 'description': '用户名'},
-                {'name':'password', 'type': data_format.idcard, 'required': True, 'description': '密码'},
+                {'name':'password', 'type': str, 'required': True, 'description': '密码'},
             ]
         }
     },
@@ -36,7 +36,7 @@ conf = [
     },
 
 ]
-class CommonApi(ApiShop):
+class CommonApi(SingleApiShop):
     def before_running(self, **kwargs):
         print('运行前钩子',kwargs)
         if kwargs.get('key')=='addroute/mock':
@@ -50,7 +50,6 @@ af = CommonApi(conf, {
 })
 
 app_name = 'api'
-from src.api_shop import get_api_result_json
 
 
 urlpatterns = [
@@ -59,8 +58,11 @@ urlpatterns = [
     re_path(r'([\s\S]*)', af.api_entry, name='index')
 ]
 
+# 引入
+apishop_instance = SingleApiShop.get_single_apishop()
 
-@af.add_api(
+
+@apishop_instance.add_api(
     name='装饰器模式接口',
     url=['addroute/mock/<username>','addroute/test'],
     methods={
@@ -71,4 +73,11 @@ urlpatterns = [
 )
 class ApiMockTest(Api):
     def get(self, request, data):
-        print('get',data)
+        response = apishop_instance.api_run(
+            request=request, 
+            url='login',
+            method='POST', 
+            parameter={'username':'test@aa.com','password':99},
+            json=True
+            )
+        print('get',response)

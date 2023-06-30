@@ -1,11 +1,11 @@
 # 业务模块，flask和django写法一样
-from src.api_shop import Api
+from src.api_shop import Api, ApiShop, single_apishop
 from src.api_shop.func import model
 
 
-
 class api_login(Api):
-
+    # af = ApiShop()
+    # print(af,'af')
     def post(self,request,data=None):
         '''api登陆接口，方便微信用户绑定账户'''
         print(data)
