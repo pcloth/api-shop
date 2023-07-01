@@ -956,3 +956,37 @@ class ApiShop():
     def get_api_data(self, request, *url):
         '''返回给文档页面数据'''
         return api.framework.json({'data': self.conf, 'options': self.options})
+
+
+single_apishop = None
+
+def singleton(cls):
+    class SingletonWrapper(cls):
+        def __new__(cls, *args, **kwargs):
+            global single_apishop
+            if not single_apishop:
+                single_apishop = super().__new__(cls)
+            elif kwargs and kwargs.get('force'):
+                # 参数里包含force=True，强制覆盖上一个
+                single_apishop = super().__new__(cls)
+            elif args or kwargs:
+                # 有参数自动覆盖上一个
+                single_apishop = super().__new__(cls)
+            return single_apishop
+    return SingletonWrapper
+
+@singleton
+class SingleApiShop(ApiShop):
+    '''单例模式的ApiShop
+    这个单例和单例装饰器的区别是：
+    1、每次初始化，如果有参数，就会覆盖上一次的类和参数。
+    2、每次初始化，如果参数中force=True，就会覆盖上一次的类和参数。（包括继承后的）
+    使用get_single_apishop获取实例
+    '''
+    @staticmethod
+    def get_single_apishop():
+        '''获取单例实例'''
+        global single_apishop
+        return single_apishop
+    
+get_single_apishop = SingleApiShop.get_single_apishop
