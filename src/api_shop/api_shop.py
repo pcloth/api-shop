@@ -15,7 +15,6 @@ from .i18n import i18n_init
 from .__init__ import __version__
 from .url_parse import parse_rule
 from .autofill import auto_fill, check_fill_methods
-from werkzeug.local import LocalStack, LocalProxy
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 i18 = i18n_init('zh')
@@ -323,6 +322,15 @@ def return_response(msg=None, status_code=400):
     if not api.BAD_REQUEST:
         ret.update({'status': api.bad_request_error_status})
         status_code = 200
+    if api.use_gateway:
+        single_apishop = SingleApiShop.get_single_apishop()
+        gateway_response = None
+        if single_apishop:
+            gateway_response = single_apishop.before_running(
+                response=(ret, status_code)
+                )
+        if gateway_response:
+            return gateway_response
     return api.framework.json(ret, status_code)
 
 
@@ -348,6 +356,7 @@ class Api():
         if not method:
             method = request.method
         method = method.lower()
+        single = SingleApiShop.get_single_apishop()
         if hasattr(self, method):
             func = getattr(self, method)
             retdata = func(self, request, data)
@@ -407,6 +416,8 @@ class ApiShop():
             'document': BASE_DIR + '/api_shop/static/document.html',  # 文档路由渲染的模板
             'lang': 'en',
             'debug': True,  # 默认开启调试信息
+            'docs_mock':False, # 文档模式下，是否使用mock数据
+            'use_gateway':False, # 是否封装了网关层，如果封装了，那么api-shop将不会处理请求，而是直接返回给网关
             'auto_create_folder': False,  # 自动创建文件夹
             'auto_create_file': False,  # 自动创建文件
             'auto_create_class': False,  # 自动创建类
@@ -440,6 +451,7 @@ class ApiShop():
         # 切换语言
         self.i18n.lang_name = self.options.get('lang')
         api.BAD_REQUEST = self.options.get('bad_request', True)
+        api.use_gateway = self.options.get('use_gateway')
         api.bad_request_error_status = self.options.get(
             'bad_request_error_status')
 
@@ -714,16 +726,16 @@ class ApiShop():
         data = {}
         # 获取django的request数据
         if api.framework.name == 'django':
-            if request.GET:
+            if hasattr(request,'GET') and request.GET:
                 for k, v in request.GET.items():
                     if k.endswith('[]'):
                         # 从get传递过来的同名参数，需要重组成list对象
                         v = request.GET.getlist(k)
                         k = k[:-2]
                     data.update({k: v})
-            elif request.POST:
+            elif hasattr(request,'POST') and request.POST:
                 data.update(request.POST.dict())
-            elif request.is_ajax():
+            elif hasattr(request,'is_ajax') and request.is_ajax():
                 # axios payload 方式传递数据
                 # 如果使用axios，必须指定'X-Requested-With'='XMLHttpRequest'
                 data.update(json.loads(request.body))
@@ -877,6 +889,7 @@ class ApiShop():
         model, key, value_dict = self.__find_api_function(url)
         methons = self.__find_api_methons(key)
         errmsg = ''
+        code = 400
         if methons and not method is None:
             # 有配置方法和参数，校验参数合法性，并转换参数
             par_conf = methons.get(method.upper())
@@ -885,10 +898,11 @@ class ApiShop():
             errmsg, data = self.verify_parameter(
                 None, par_conf, value_dict=value_dict, parameter=parameter)
         else:
+            code = 404
             errmsg = _('no such interface method')
         if errmsg:
             if json:
-                return {'msg': errmsg}, 400
+                return {'msg': errmsg}, code
             return return_response(errmsg)
         ret = model(request, data, json, method)
         return ret
@@ -935,7 +949,8 @@ class ApiShop():
                     request=request, data=data, model=model, key=key)
                 if before_running_ret:
                     return before_running_ret
-            ret = model(request, data)
+            # 运行接口，如果要使用网关，就直接先返回一个数据
+            ret = model(request, data,json=self.options.get('use_gateway'))
             if hasattr(self, 'after_running'):
                 new_ret = self.after_running(
                     request=request, response=ret,  model=model, key=key)
@@ -943,7 +958,7 @@ class ApiShop():
                     return new_ret
             return ret
         else:
-            return return_response(_('no such interface method'))
+            return return_response(_('no such interface method'), 404)
 
     def render_documents(self, request, *url):
         '''渲染文档'''
@@ -988,5 +1003,5 @@ class SingleApiShop(ApiShop):
         '''获取单例实例'''
         global single_apishop
         return single_apishop
-    
+
 get_single_apishop = SingleApiShop.get_single_apishop

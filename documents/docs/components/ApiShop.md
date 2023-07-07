@@ -38,18 +38,20 @@ ap = ApiShop(conf,options)
 
 ### ApiShop 设置参数(options)
 
-| 参数名称                 | 类型 | 默认值        | 说明                                                                                                                           |
-| ------------------------ | ---- | ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| base_url                 | str  | /api/         | 基础 url，用以组合给前端的 api url                                                                                             |
-| bad_request              | bool | True          | 参数 bad_request 如果是真，发生错误返回一个坏请求给前端，否则都返回 200 的 response，里面附带 status=error 和 msg 附带错误信息 |
-| bad_request_error_status | str  | 'error'       | 默认的 bad_request 状态信息，bad_request=False 生效                                                                            |
-| document                 | str  | document.html | 文档模板绝对路径                                                                                                               |
-| lang                     | str  | en            | ApiShop 的语言，默认为 en 英文，可选项为 zh 中文                                                                               |
-| debug                    | bool | True          | 是否开启调试信息                                                                                                               |
-| auto_create_folder       | bool | False         | 自动创建文件夹（实验方法）                                                                                                     |
-| auto_create_file         | bool | False         | 自动创建文件（实验方法）                                                                                                       |
-| auto_create_class        | bool | False         | 自动创建类（实验方法）                                                                                                         |
-| auto_create_method       | bool | False         | 自动创建方法（实验方法）                                                                                                       |
+| 参数名称                 | 类型 | 默认值        | 说明                                                                                                                                                                     |
+| ------------------------ | ---- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| base_url                 | str  | /api/         | 基础 url，用以组合给前端的 api url                                                                                                                                       |
+| bad_request              | bool | True          | 参数 bad_request 如果是真，发生错误返回一个坏请求给前端，否则都返回 200 的 response，里面附带 status=error 和 msg 附带错误信息                                           |
+| bad_request_error_status | str  | 'error'       | 默认的 bad_request 状态信息，bad_request=False 生效                                                                                                                      |
+| document                 | str  | document.html | 文档模板绝对路径                                                                                                                                                         |
+| lang                     | str  | en            | ApiShop 的语言，默认为 en 英文，可选项为 zh 中文                                                                                                                         |
+| debug                    | bool | True          | 是否开启调试信息                                                                                                                                                         |
+| use_gateway              | bool | False         | 是否启用网关模式，网关模式需要自行继承 SingleApiShop 类并处理执行钩子 before_running 和 after_running，参数错误等会调用 before_running，所有返回信息会调用 after_running |
+| docs_mock                | bool | False         | 文档中的接口测试是否自动填写随机值                                                                                                                                       |
+| auto_create_folder       | bool | False         | 自动创建文件夹（实验方法）                                                                                                                                               |
+| auto_create_file         | bool | False         | 自动创建文件（实验方法）                                                                                                                                                 |
+| auto_create_class        | bool | False         | 自动创建类（实验方法）                                                                                                                                                   |
+| auto_create_method       | bool | False         | 自动创建方法（实验方法）                                                                                                                                                 |
 
 ## 业务代码入口
 
