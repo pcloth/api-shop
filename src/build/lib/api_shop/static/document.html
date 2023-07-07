@@ -466,7 +466,7 @@
                         mockConf[method[i].name] = method[i].value;
                     } else if (!method[i].required) {
                         continue;
-                    } else {
+                    } else if (this.options.docs_mock) {
                         let min = method[i].min ? method[i].min : 1;
                         let max = method[i].max ? method[i].max : 20;
                         let length = getRandomInt(min, max);
