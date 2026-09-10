@@ -11,10 +11,11 @@ import os
 import re
 import time
 import importlib
+import copy
+import warnings
 from .i18n import i18n_init
-from .__init__ import __version__
+from .version import __version__
 from .url_parse import parse_rule
-from .autofill import auto_fill, check_fill_methods
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 i18 = i18n_init('zh')
@@ -124,7 +125,7 @@ class FW(Namespace):
         for path in current_fw:
             try:
                 model = importlib.import_module(path)
-            except:
+            except ImportError:
                 return
 
             for key in current_fw[path]:
@@ -402,8 +403,15 @@ class ApiShop():
 
         }
         '''
+        warnings.warn(
+            "ApiShop is the legacy 1.x API; use ApiRegistry and Dispatcher for new code",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if not conf:
             conf = []
+        else:
+            conf = copy.deepcopy(conf)
 
         self.i18n = i18
 
@@ -415,7 +423,7 @@ class ApiShop():
             'bad_request_error_status': 'error',
             'document': BASE_DIR + '/api_shop/static/document.html',  # 文档路由渲染的模板
             'lang': 'en',
-            'debug': True,  # 默认开启调试信息
+            'debug': False,
             'docs_mock':False, # 文档模式下，是否使用mock数据
             'use_gateway':False, # 是否封装了网关层，如果封装了，那么api-shop将不会处理请求，而是直接返回给网关
             'auto_create_folder': False,  # 自动创建文件夹
@@ -428,6 +436,18 @@ class ApiShop():
         self.document_version = ''
         if options:
             self.options.update(options)
+        auto_options = (
+            'auto_create_folder',
+            'auto_create_file',
+            'auto_create_class',
+            'auto_create_method',
+        )
+        if any(self.options.get(key) for key in auto_options):
+            warnings.warn(
+                "Legacy runtime source generation is disabled in api-shop 2.0",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         try:
             if self.options.get('document'):
                 self.document_name = self.options.get('document')
@@ -438,7 +458,7 @@ class ApiShop():
                 os.stat(self.document_name).st_mtime)
             self.document = open(self.document_name,
                                  mode='r', encoding='utf-8').read()
-        except:
+        except (OSError, UnicodeError):
             self.document = '<h1>' + _('document template not found') + '</h1>'
 
         # 指定框架
@@ -465,23 +485,18 @@ class ApiShop():
         self.__init_url_rules()
 
     def __class_to_json(self, methods):
-        '''将python的dict数据对象类切换成字符串'''
-        string = str(methods)  # .__str__()
-        # 替换类名称
-        class_list = re.compile(r"""<class '[\w|\.]*'>""", 0).findall(string)
-        for line in class_list:
-            string = string.replace(line, "'{}'".format(line.split("'")[1]))
-
-        # 替换其他对象名称
-        others = re.compile(r'''<[\s|\S.]*>''', 0).findall(string)
-        for line in others:
-            try:
-                string = string.replace(
-                    line, "'{}'".format(line.split(" ")[1]))
-            except:
-                string = string.replace(line, "'{}'".format(line))
-
-        return eval(string)
+        '''将配置递归转换成可JSON序列化的数据，不执行配置内容。'''
+        if isinstance(methods, dict):
+            return {key: self.__class_to_json(value) for key, value in methods.items()}
+        if isinstance(methods, (list, tuple, set)):
+            return [self.__class_to_json(value) for value in methods]
+        if isinstance(methods, type):
+            rendered = repr(methods)
+            match = re.fullmatch(r"<class '([^']+)'>", rendered)
+            return match.group(1) if match else rendered
+        if methods is None or isinstance(methods, (str, int, float, bool)):
+            return methods
+        return repr(methods)
 
     def __dynamic_import(self, thisconf):
         name = thisconf['class']
@@ -491,19 +506,16 @@ class ApiShop():
         components = name.split('.')
         path = '.'.join(components[:-1])
         try:
-            exec('from {} import {}'.format(path, components[-1]))
-            return eval(components[-1])
-        except Exception as ie:
-            if self.options.get('debug') == True:
-                print('\n\n*******  api-shop errmsg  *******\n')
-                print('currnet_api:\nurl: {}\nclass: {}\n'.format(
-                    thisconf.get('url'), thisconf.get('class')))
+            module = importlib.import_module(path)
+            return getattr(module, components[-1])
+        except Exception as exc:
+            if self.options.get('debug'):
                 traceback.print_exc()
-                if auto_fill(thisconf, self.options) == True:
-                    # 自动生成文件或者方法，成功后重试一次。
-                    return self.__dynamic_import(thisconf)
-                else:
-                    os._exit(0)
+            raise ImportError(
+                "Unable to load API class {!r} for URL {!r}".format(
+                    name, thisconf.get('url')
+                )
+            ) from exc
 
     def __make_model(self, conf):
         # 将字符串里的function模块和函数加载进来，并写入到run_function字段方便调用。
@@ -546,8 +558,6 @@ class ApiShop():
                         roots = self.__find_response_docs(key.upper(), nodes)
                         response_docs.update({key.upper(): roots})
                 conf[i]['methods_return'] = response_docs
-            if self.options.get('auto_create_method'):
-                check_fill_methods(model, conf[i])
             for key in ['get', 'post', 'delete', 'put', 'patch']:
                 # 把业务类子方法的文档添加到数据表
                 if hasattr(model, key):
@@ -733,30 +743,24 @@ class ApiShop():
                         v = request.GET.getlist(k)
                         k = k[:-2]
                     data.update({k: v})
-            elif hasattr(request,'POST') and request.POST:
+            if hasattr(request,'POST') and request.POST:
                 data.update(request.POST.dict())
-            elif hasattr(request,'is_ajax') and request.is_ajax():
-                # axios payload 方式传递数据
-                # 如果使用axios，必须指定'X-Requested-With'='XMLHttpRequest'
-                data.update(json.loads(request.body))
-            else:
+            if hasattr(request, 'body') and request.body:
                 try:
                     data.update(json.loads(request.body))
-                except:
+                except (TypeError, ValueError, json.JSONDecodeError):
                     pass
         if api.framework.name == 'flask':
             if request.args:
                 data.update(request.args.to_dict())
-            elif request.form:
+            if request.form:
                 data.update(request.form.to_dict())
-            else:
-                try:
-                    # 某些特殊错误的封装，将get,Content-Type: application/json
-                    jd = request.get_json()
-                    if jd:
-                        data.update(jd)
-                except:
-                    pass
+            try:
+                jd = request.get_json(silent=True)
+                if isinstance(jd, dict):
+                    data.update(jd)
+            except (AttributeError, TypeError, ValueError):
+                pass
         if api.framework.name == 'bottle':
             if request.GET:
                 data.update(request.GET)
@@ -807,14 +811,17 @@ class ApiShop():
                     # 容器类，json验证后转换
                     value = type_(json.loads(value))
                 elif type_ == bool:
-                    if value == 'true':
+                    normalized = str(value).strip().lower()
+                    if normalized in ('true', '1'):
                         value = True
-                    else:
+                    elif normalized in ('false', '0'):
                         value = False
+                    else:
+                        raise ValueError('invalid boolean')
                 else:
                     # 其他类型或者类型转换器
                     value = type_(value)
-            except:
+            except (TypeError, ValueError, json.JSONDecodeError):
                 return _('parameter')+' {} '.format(name)+_('must be type')+' {} '.format(type_), None
 
         # 检查转换后的'',[],(),{}都放弃长度检查，0继续检查大小。
@@ -829,7 +836,7 @@ class ApiShop():
                 return _('parameter') + ' {} '.format(name) + _('must be in the list of options') + ' : {}'.format(json.dumps(options)), None
 
         # 检查最小值/长度
-        if min_:
+        if min_ is not None:
             if type(value) in [str, list, dict, set]:
                 if len(value) < min_:
                     return _('parameter')+' {} '.format(name)+_('minimum length')+' {} '.format(min_), None
@@ -842,7 +849,7 @@ class ApiShop():
                     return _('parameter')+' {} '.format(name)+_('minimum value')+' {} '.format(min_), None
 
         # 检查最大值/长度
-        if max_:
+        if max_ is not None:
             if type(value) in [str, list, dict, set]:
                 if len(value) > max_:
                     return _('parameter')+' {} '.format(name)+_('maximum length')+' {} '.format(max_), None
@@ -966,6 +973,7 @@ class ApiShop():
             # 如果文档发生变化，读取文档。
             self.document = open(self.document_name,
                                  mode='r', encoding='utf-8').read()
+            self.document_version = time.ctime(os.stat(self.document_name).st_mtime)
         return api.framework.template(self.document)
 
     def get_api_data(self, request, *url):

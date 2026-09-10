@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "api-shop"
+version = "2.0.0"
+description = "Framework-neutral typed API contracts and dispatch"
+readme = "README.MD"
+requires-python = ">=3.10"
+license = {text = "BSD-3-Clause"}
+authors = [{name = "pcloth", email = "pcloth@gmail.com"}]
+dependencies = ["pydantic>=2.8,<3"]
+
+[project.optional-dependencies]
+django = ["Django>=4.2"]
+flask = ["Flask>=2.3"]
+bottle = ["bottle>=0.13"]
+sqlalchemy = ["SQLAlchemy>=2.0"]
+fast = ["orjson>=3.9"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
+exclude = ["build*", "*.egg-info*"]
+
+[tool.setuptools.package-data]
+api_shop = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

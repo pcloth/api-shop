@@ -1,5 +1,53 @@
 # api-shop ![PyPI](https://img.shields.io/pypi/v/api-shop?logo=api-shop) ![PyPI - Downloads](https://img.shields.io/pypi/dm/api-shop)
 
+## 2.0 typed core
+
+api-shop 2.0 separates API contracts and dispatch from the host web framework.
+Applications mount one catch-all adapter and declare request sources explicitly.
+Validation and serialization use Pydantic v2 and its Rust-based `pydantic-core`.
+
+```python
+from typing import Annotated
+
+from pydantic import BaseModel
+from api_shop import ApiRegistry, Body, Dispatcher, Path, Query
+from api_shop.adapters import ASGIAdapter
+
+class CreateBody(BaseModel):
+    name: str
+
+class CreateInput(BaseModel):
+    team_id: Annotated[int, Path()]
+    notify: Annotated[bool, Query()] = False
+    body: Annotated[CreateBody, Body()]
+
+class UserOutput(BaseModel):
+    id: int
+    name: str
+
+api = ApiRegistry()
+
+@api.route(
+    "/teams/<int:team_id>/users",
+    methods=["POST"],
+    input=CreateInput,
+    response={201: UserOutput},
+)
+async def create_user(ctx, data):
+    return {"id": 1, "name": data.body.name}, 201
+
+application = ASGIAdapter(Dispatcher(api), prefix="/api")
+```
+
+Thin adapters are available for ASGI, Django, Flask, and Bottle. OpenAPI 3.1 is
+generated with `generate_openapi()` from the same compiled contracts used at
+runtime. Django and SQLAlchemy DTO inspectors require an explicit field list and
+never follow relationships automatically.
+
+The 1.x API remains available from `api_shop.legacy` for one major release. It is
+deprecated and should not be used for new endpoints. Runtime source generation
+has been disabled; missing handler imports now raise a normal `ImportError`.
+
 ## [Online Documents](https://pcloth.gitee.io/api-shop/)
 
 ## [在线文档](https://pcloth.gitee.io/api-shop/)

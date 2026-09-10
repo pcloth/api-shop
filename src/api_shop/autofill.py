@@ -1,3 +1,4 @@
+import importlib
 import os, re
 
 def __find_path(name):
@@ -44,14 +45,16 @@ def auto_fill(thisconf, options):
         create_file(path)
 
     try:
-        exec('from {} import {}'.format('.'.join(path), classname))
-    except:
+        module = importlib.import_module('.'.join(path))
+        getattr(module, classname)
+    except (ImportError, AttributeError):
         # 类不存在
         if class_flag:
             create_class(path, classname, thisconf)
         else:
             return False
     
+            return True
     return False
 
 # 将参数填充进文档注释
@@ -124,8 +127,9 @@ def create_class(path, classname,thisconf):
     methods = thisconf['methods']
     exe_path = '.'.join(thisconf['class'].split('.')[:-1])
     try:
-        exec('from {} import Api'.format(exe_path))
-    except:
+        module = importlib.import_module(exe_path)
+        getattr(module, 'Api')
+    except (ImportError, AttributeError):
         # print('Api未引入')
         file = open(path + '.py', 'r', encoding='utf-8')
         content = file.read()
