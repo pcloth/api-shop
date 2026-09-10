@@ -8,92 +8,42 @@ next:
 lastUpdated: true
 ---
 
-## 介绍
+# 设计与生命周期
 
-api-shop 是一个 python 库，它用来帮助使用 django、flask 或者 bottle 作为 web 框架的开发者，快速的进行 restful-api 开发。
+## 为什么重新设计
 
-### 它是如何工作的？
+1.x 同时负责配置解析、框架识别、路由分发、文档渲染和响应构造。它可以快速启动项目，但模块级全局状态会让多应用、并发测试和混合框架变得不可预测，字典配置也难以获得静态检查。
 
-api-shop 并不会直接接管 web 框架的路由控制器，它需要你在 web 框架的路由控制器中添加一个正则路由，并指向 api-shop 实例入口
+2.0 将职责拆成三层：
 
-比如，在`Flask`中，我们需要你这样引入
+- `ApiRegistry`：声明路由和输入/响应契约，启动时编译为只读表。
+- `Dispatcher`：匹配路由、绑定参数、执行中间件与 handler、校验响应。
+- adapter：将宿主请求转换为 `RequestContext`，将 `ResponseContext` 转回框架响应。
 
-```python
-from api_shop from ApiShop
+核心包不会自动探测 Web 框架，也不会在运行时生成或修改业务源码。
 
-af = ApiShop(
-    conf=[],
-    options={
-        'lang': 'zh',
-        'framework': 'flask',
-    })
+## 请求生命周期
 
+1. adapter 从挂载前缀中取出相对路径，并分别读取 headers、query、cookies、body、form 和 files。
+2. registry 按“静态段、受限动态段、普通动态段、path 段”的顺序匹配。
+3. dispatcher 根据字段上的来源标记取值，再交给 Pydantic 校验和转换。
+4. middleware 依次执行，最终调用同步或异步 handler。
+5. handler 结果按当前 HTTP 状态对应的响应模型校验并过滤字段。
+6. adapter 把统一响应转换为宿主框架响应。
 
-@app.route('/api/<regex("([\s\S]*)"):url>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
-def hello_world(url):
-    if url == 'document/':
-        return af.render_documents(request, url)
-    if url == 'api_data':
-        return af.get_api_data(request, url)
+## 实例隔离
 
-    return af.api_entry(request, url)
-```
-
-::: tip
-其中，`document/`这个路由是可以修改的，`api_data`这个路由确是需要固定的，它是为了默认的文档工具能够拿到接口数据。除非你自己重写文档页面。
-:::
-
-## 生命周期
-
-::: tip
-让你更加的专注到业务上，其他的事情交给 api-shop
-:::
-![An image](/api-shop.png)
-
-### 钩子的使用
-
-::: tip
-我们提供了 before_running 和 after_running 两个钩子，你只需要继承 ApiShop 并复写它们就可以使用
-钩子函数可以返回一个 response 来替代原本将要返回的对象。
-:::
-
-### 钩子例子
+每个 `Dispatcher` 都持有自己的只读 registry、中间件和 logger，不依赖模块级 framework 或 singleton：
 
 ```python
-class CommonApi(ApiShop):
-    def before_running(self, **kwargs):
-        print('运行前钩子',kwargs)
-        if kwargs.get('key')=='addroute/mock':
-            return JsonResponse({'msg':'您没有权限'}, status=400)
-    def after_running(self, **kwargs):
-        print('运行后钩子',kwargs)
-
-af = CommonApi(conf, {
-    'framework': 'django',
-    'lang': 'zh'
-})
+public_dispatcher = Dispatcher(public_api, middleware=[request_log])
+admin_dispatcher = Dispatcher(admin_api, middleware=[authenticate_admin])
 ```
 
-### before_running 运行前
+两个实例可以挂载在不同前缀，测试时也不会互相覆盖。
 
-| 参数名  | 类型                            | 说明                                                              |
-| ------- | ------------------------------- | ----------------------------------------------------------------- |
-| request | 请求实例                        | 用户提交的请求实例                                                |
-| data    | 请求参数对象(该对象继承于 dict) | ApiShop 把请求参数解析后的数据对象，支持 data.name 的方法访问参数 |
-| model   | 继承于 Api 类的业务对象         | 接口将要调用的 Api 类                                             |
-| key     | str                             | 用户当前引用到的 url 参数（在 conf 配置中的 url 参数）            |
+## Rust 与性能
 
-### after_running 运行后
+参数校验使用 Pydantic v2，其底层 `pydantic-core` 已由 Rust 实现。安装 `api-shop[fast]` 后，JSON 响应会优先使用 `orjson`，不可用时自动回退到标准库。
 
-| 参数名   | 类型                    | 说明                                                   |
-| -------- | ----------------------- | ------------------------------------------------------ |
-| request  | 请求实例                | 用户提交的请求实例                                     |
-| response | response 对象           | Api 业务代码执行后，即将返回给用户的 response 对象     |
-| model    | 继承于 Api 类的业务对象 | 接口调用的 Api 类                                      |
-| key      | str                     | 用户当前引用到的 url 参数（在 conf 配置中的 url 参数） |
-
-## api 网关封装
-
-::: tip
-1.14 版本之后提供了一个`SingleApiShop`的全局单例类，用户继承它之后，覆盖`before_running`和`after_running`用来统一处理接口前后内容。
-:::
+项目提供路由基准脚本。自研 Rust matcher 只有在与 Python 实现语义完全一致、且端到端 dispatch 提升达到 15% 后才会成为可选扩展；2.0 首版不要求用户安装 Rust。

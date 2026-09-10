@@ -1,207 +1,135 @@
 # 快速上手
+
 ## 安装
-```sh
-sudo pip install api-shop
+
+核心只依赖 Pydantic v2：
+
+```bash
+python -m pip install "api-shop>=2,<3"
 ```
-## 引入
+
+根据宿主框架安装 extra：
+
+```bash
+python -m pip install "api-shop[django]>=2,<3"
+python -m pip install "api-shop[flask]>=2,<3"
+python -m pip install "api-shop[bottle]>=2,<3"
+python -m pip install "api-shop[fast]>=2,<3"     # 可选 orjson
+```
+
+api-shop 2.0 要求 Python 3.10 或更高版本。
+
+## 声明请求和响应
+
 ```python
-from api_shop from ApiShop,Api,data_format
-```
-## ApiShop 初始化
-``` python
-from api_shop import ApiShop
-conf = [
-    {
-        'url': 'user',
-        'class': 'account.api_class.UserApi',
-        'name': '账户接口',
-        'methods': {
-            'POST': [
-                {'name':'username', 'type': str, 'required': True, 'min': 3, 'max': 24, 'description': '用户名'},
-                {'name':'password', 'type': str, 'required': True, 'min': 3, 'max': 24, 'description': '密码'},
-            ],
-            'GET':[]
-        }
-    },
-]
+from typing import Annotated
 
-options = {
-    'lang': 'zh',
-}
+from pydantic import BaseModel, Field
+from api_shop import ApiRegistry, Body, Header, Path, Query
 
-af = ApiShop(conf,options)
 
-```
+class CreateUserBody(BaseModel):
+    name: str = Field(min_length=2, max_length=50)
+    email: str
 
-### 例子
 
-#### django
-``` python
-ap = ApiShop(conf,options)
+class CreateUserInput(BaseModel):
+    team_id: Annotated[int, Path()]
+    notify: Annotated[bool, Query()] = False
+    token: Annotated[str, Header(alias="Authorization")]
+    body: Annotated[CreateUserBody, Body()]
 
-app_name='api'
 
-urlpatterns = [
-    path('api_data', ap.get_api_data, name='api_data'), # api文档需要的接口
-    path('document/', ap.render_documents, name='document'), #api文档渲染的路由
-    re_path(r'([\s\S]*)', ap.api_entry, name='index') # 接管api/下面其他的全部路由到api_entry入口方法
-]
+class UserOutput(BaseModel):
+    id: int
+    name: str
+    email: str
+
+
+api = ApiRegistry()
+
+
+@api.route(
+    "/teams/<int:team_id>/users",
+    methods=["POST"],
+    input=CreateUserInput,
+    response={201: UserOutput},
+    tags=["users"],
+    name="create_user",
+)
+async def create_user(ctx, data):
+    user = await save_user(data.team_id, data.body)
+    return user, 201
 ```
 
-#### flask
-``` python
-from flask import Flask,request,render_template_string
+创建 `Dispatcher` 时 registry 会立即编译。缺少参数来源、路径参数不对应、未知 converter 或歧义路由都会在启动时失败：
 
-from werkzeug.routing import BaseConverter
+```python
+from api_shop import Dispatcher
 
-from api_shop import ApiShop,Api
+dispatcher = Dispatcher(api)
+```
 
-class RegexConverter(BaseConverter):
-    def __init__(self, map, *args):
-        self.map = map
-        self.regex = args[0]
+## 挂载到宿主框架
+
+### 通用 ASGI
+
+```python
+from api_shop.adapters import ASGIAdapter
+
+application = ASGIAdapter(dispatcher, prefix="/api")
+```
+
+### Flask
+
+```python
+from flask import Flask
+from api_shop.adapters import mount_flask
 
 app = Flask(__name__)
-# 如果使用蓝图，添加正则处理器必须是在注册蓝图之前使用。
-app.url_map.converters['regex'] = RegexConverter
-
-conf = [
-    {
-        'url': 'login',
-        'class': 'api.views.api_login',
-        'name': '账户登录',
-        'methods': {
-            'POST': [
-                {'name':'username', 'type': str, 'required': True, 'min': 3, 'max': 24, 'description': '用户名'},
-                {'name':'password', 'type': str, 'required': True, 'min': 3, 'max': 24, 'description': '密码'},
-            ]
-        }
-    },
-    {
-        'url': 'test',
-        'class': 'api.views.test',
-        'name': '测试数据',
-        'methods': {
-            'GET':[{'name':'bb', 'type': int, 'required': True, 'min': 0, 'max': 100, 'description': '百分比','default':95},],
-            'POST': [
-                {'name':'add', 'type': str, 'required': True, 'min': 3, 'max': 24, 'description': '地址'},
-                {'name':'bb', 'type': int, 'required': True, 'min': 0, 'max': 100, 'description': '百分比','default':95},
-                {'name':'list', 'type': list, 'description': '列表'},
-            ],
-            'DELETE':[
-                {'name':'id', 'type': int, 'required': True, 'min': 1,'description': '编号'},
-            ]
-        }
-    },
-
-]
-
-
-af = ApiShop(conf)
-
-
-
-@app.route('/api/<regex("([\s\S]*)"):url>',methods=['GET', 'POST','PUT','DELETE','PATCH'])
-def hello_world(url):
-    print(url)
-    if url=='document/':
-        return af.render_documents(request,url)
-    if url=='api_data':
-        return af.get_api_data(request,url)
-
-    return af.api_entry(request,url)
-
-if __name__ == '__main__':
-    app.run(host="0.0.0.0",debug=True)
+mount_flask(app, dispatcher, prefix="/api")
 ```
 
-
-#### bottle
-```python
-from bottle import route, run, template, request,HTTPResponse
-from src.api_shop import ApiShop
-
-conf = [
-    {
-        'url': 'weixin/login',
-        'class': 'business_code.test.abc.api_login',
-        'name': '微信账户登录',
-        'methods': {
-            'POST': [
-                {'name': 'username', 'type': str, 'required': True,
-                    'min': 3, 'max': 24, 'description': '用户名'},
-                {'name': 'ddd', 'type': str,   'description': '日期'},
-            ]
-        }
-    },
-    {
-        'url': 'weixin/<name>/<id>',
-        'class': 'business_code.views.test',
-        'name': '账户登录',
-        'methods': {
-            
-            'POST': [{'name': 'id', 'type': bool, 'required': True,
-                         'description': '用户id'},
-                         {'name': 'name', 'type': str, 'min':4,'required': True,
-                         'description': '用户name'}, 
-                    ],
-        }
-    },
-]
-
-af = ApiShop(conf,
-    {
-        'lang': 'zh',
-        'name_classification': ['微信', '账户'],
-        'url_classification': ['weixin', 'login'],
-        'framework':'bottle'
-    })
-
-
-@route('/api/<url:re:([\s\S]*)>',['GET','PUT','PATCH','DELETE','POST'])
-def api_index(url):
-    print('*'*20,url)
-    if url == 'document/':
-        return af.render_documents(request, url)
-    if url == 'api_data':
-        return af.get_api_data(request, url)
-    return af.api_entry(request, url)
-
-run(host='localhost', port=8080,reloader=True,debug=True)
-```
-
-
-## Api接口业务
-::: tip Api类
-我们提供了一个Api类，用来封装你的业务代码
-:::
+### Django
 
 ```python
-from api_shop import Api
+from api_shop.adapters import django_urlpatterns
 
-class UserApi(Api):
-    '''这里是接口描述文档'''
-
-    def get(self, request, data):
-        '''查询用户'''
-        return {'user_name': '测试用户'}
-
-    def post(self, request, data):
-        '''接受新增用户或者修改用户'''
-        return {'status':'success'}
-
-    def patch(self, request, data):
-        '''这里是patch方法'''
-
-    def delete(self, request, data):
-        '''这里是删除方法'''
-        return {'msg':'这是一个错误请求'}, 401
-
-    def put(self, request, data):
-        '''这里是put方法'''
+urlpatterns = django_urlpatterns(dispatcher, prefix="api")
 ```
 
-### methods方法
-我们提供了一个快速的构建methods方法接口，如上面的代码所示，类方法get、post、patch、delete、put各自代表了请求的method方法
-1. 类方法中直接返回一个dict对象，就可以让用户收到一个json的response。
-2. 如果需要返回非200的response，则需要在return中标识出来
+也可以将返回的列表追加到已有 `urlpatterns`。
+
+### Bottle
+
+```python
+from bottle import Bottle
+from api_shop.adapters import mount_bottle
+
+app = Bottle()
+mount_bottle(app, dispatcher, prefix="/api")
+```
+
+## 直接调度
+
+测试或内部调用可以绕过宿主框架：
+
+```python
+from api_shop import RequestContext
+
+response = dispatcher.dispatch(RequestContext(
+    method="POST",
+    path="/teams/7/users",
+    query={"notify": "true"},
+    headers={"Authorization": "Bearer example"},
+    body={"name": "Ada", "email": "ada@example.com"},
+))
+```
+
+异步上下文中必须使用：
+
+```python
+response = await dispatcher.dispatch_async(request_context)
+```
+
+不要在正在运行的 event loop 内调用同步 `dispatch()`。

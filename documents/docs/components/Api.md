@@ -1,94 +1,117 @@
 ---
-title: Api类
+title: 请求与响应契约
 ---
 
-## Api类
-::: tip
-api业务代码父类，你写的业务代码都要继承它。
-:::
+# 请求与响应契约
 
-## 例子
-``` python
-from api_shop import Api, ApiResponseModelFields
+## 参数来源
 
-class api_login(Api):
-    """用户账号登陆，这里的文字会被加载到文档里"""
-    response_docs = {
-        # 这个response_docs将会在文档中生成返回值说明文档
-        'get':{
-            'results':{PartyData},
-            'test':{
-                ApiResponseModelFields(PartyData,['id',PartyData.name]), # 使用部分字段，django必须使用这个类包裹才能引入部分字段，flask则可以直接使用字段名
-                'photos:Array:照片数据' # 手写字段文档
-                },
-            'user_party_info':{PartyUsers,'photos:Array:照片数据'} # PartyUsers模型的全部字段叠加部分其他字段
-        }
-    }
+输入模型必须继承 `pydantic.BaseModel`，每个字段必须且只能声明一个来源：
 
-    def get(self, request, data):
-        '''这是request的get方法'''
-        return 
+```python
+from typing import Annotated
+from pydantic import BaseModel
+from api_shop import Body, Cookie, File, Form, Header, Path, Query
 
-    def post(self, request, data):
-        """ 
-        这是request的post方法
-        data.username # 用户名
-        data.ddd # 日期
-        """
-        return {'msg':'登陆成功'}
 
-    def patch(self, request, data):
-        '''这是request的patch方法'''
-        return 
-    
-    def delete(self, request, data):
-        '''这是request的delete方法'''
-        return 
-    
-    def put(self, request, data):
-        '''这是request的put方法'''
-        return 
+class SearchBody(BaseModel):
+    filters: list[str] = []
+
+
+class SearchInput(BaseModel):
+    project_id: Annotated[int, Path()]
+    page: Annotated[int, Query()] = 1
+    token: Annotated[str, Header(alias="Authorization")]
+    session: Annotated[str | None, Cookie(alias="session_id")] = None
+    body: Annotated[SearchBody, Body()]
 ```
 
-::: warning 返回值 
-- 返回值可以为None，前端会收到一个200状态的空响应，例如 return None
-- 也可以指定状态码，比如 return {'msg':'错误信息'}, 400
-- 当然也可以直接返回其他数据 return 1  前端会收到一个body内容为1的响应
-:::
+| 来源 | 数据位置 | 备注 |
+| --- | --- | --- |
+| `Path` | 路由变量 | 字段必须与路由变量一一对应 |
+| `Query` | URL query | 重复 key 保留为 list |
+| `Header` | 请求头 | 名称匹配不区分大小写，可用 alias |
+| `Cookie` | Cookie | 可用 alias |
+| `Body` | 完整 JSON body | 一个模型最多声明一个，不能与 Form/File 混用 |
+| `Form` | 表单字段 | 可与 File 组合 |
+| `File` | 上传文件 | 实际对象类型由宿主 adapter 决定 |
 
-## methods类方法
-::: tip 
-1. get 方法，对应的是request的`get` method
-2. post 方法，对应的是request的`post` method
-3. patch 方法，对应的是request的`patch` method
-4. delete 方法，对应的是request的`delete` method
-5. put 方法，对应的是request的`put` method
-:::
+参数不会在来源之间自动回退。这样可以避免 query 参数意外覆盖 body，也让 OpenAPI 与运行时行为一致。
 
-### 传入的 request 说明
-> - 正常情况下，传入的request就是当前请求的reqeust
+## RequestContext
 
-### 传入的 data 说明
-> - data对象就是校验转换后的参数dict，数据内容可以通过属性访问，例如：data.name
+handler 的第一个参数是 `RequestContext`：
 
-
-## response_docs返回值文档
-这个response_docs将会在文档中生成返回值说明文档
-> 它的第一层是一个dict字典，key为method名。
-> 第二层开始就是描述返回值的说明，可以直接使用orm的model类对象。
-> 也可以使用ApiResponseModelFields类方法来包裹ORM的Model类，并描述需要的部分字段
-> 甚至你可以使用用冒号分割的一个字符串描述`'photos:Array:照片数据'` # 手写字段文档
-
-## ApiResponseModelFields
-这个类可以捕捉ORM的数据模型里面的字段和描述信息，用来生成返回值文档
-```py
-ApiResponseModelFields(Model,List)
+```python
+ctx.method
+ctx.path
+ctx.headers
+ctx.query
+ctx.cookies
+ctx.body
+ctx.form
+ctx.files
+ctx.path_params
+ctx.state
+ctx.request_id
+ctx.raw
 ```
-::: tip 
-ApiResponseModelFields初始化需要两个参数。
-Model为你需要引用的ORM数据模型
-List是包含了需要返回字段的列表，列表中可以是字符串key，也可以是Model.key （key为字段名）
-:::
 
-### response_docs在文档中的表现
-![response_docs](/responseDocs.png)
+`ctx.raw` 是宿主框架原始请求，仅用于尚未抽象的特殊功能。可复用业务代码应优先使用其他标准字段。
+
+## 响应契约
+
+```python
+class UserOutput(BaseModel):
+    id: int
+    display_name: str
+
+
+class ErrorOutput(BaseModel):
+    reason: str
+
+
+@api.route(
+    "/users/<int:id>",
+    methods=["GET"],
+    input=GetUserInput,
+    response={200: UserOutput, 404: ErrorOutput},
+)
+def get_user(ctx, data):
+    ...
+```
+
+响应校验既用于检查契约，也会过滤模型中未声明的字段。不要把 ORM 模型整对象直接作为公共响应契约，应建立明确的输出 DTO。
+
+## 错误结构
+
+路由、方法、请求校验和内部错误使用同一结构：
+
+```json
+{
+  "error": {
+    "code": "validation_error",
+    "message": "Request validation failed",
+    "details": [
+      {
+        "location": ["query", "page"],
+        "code": "greater_than_equal",
+        "message": "Input should be greater than or equal to 1"
+      }
+    ],
+    "request_id": "8bc1..."
+  }
+}
+```
+
+常用状态：
+
+| 场景 | HTTP 状态 | code |
+| --- | ---: | --- |
+| 路由不存在 | 404 | `route_not_found` |
+| Method 不允许 | 405 | `method_not_allowed` |
+| 参数校验失败 | 422 | `validation_error` |
+| 未处理异常 | 500 | `internal_error` |
+| 响应契约失败 | 500 | `response_validation_error` |
+
+业务异常可以抛出 `ApiError(status, code, message, details=...)`。500 级异常不要把内部堆栈或模型数据写进客户端响应。

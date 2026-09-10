@@ -1,33 +1,59 @@
 ---
-title: SingleApiShop类
+title: 框架适配器
 ---
 
-## 初始化
+# 框架适配器
 
-::: tip
-继承自 ApiShop 类，和它的功能一样，唯一区别就是 SingleApiShop 是一个全局单例类，不但保持单例，多次继承也可以保持最后一次单例
+2.0 不再使用 `SingleApiShop` 保存全局实例。每个宿主应用创建自己的 `Dispatcher`，再挂载一个 catch-all adapter。
 
-`推荐只需要单例的项目中使用SingleApiShop代替ApiShop初始化`
-:::
+## ASGI
 
 ```python
-from api_shop import SingleApiShop
+from api_shop.adapters import ASGIAdapter
 
-class GeteWayApi(SingleApiShop):
-    def before_running(self, **kwargs):
-        print('运行前钩子',kwargs)
-    def after_running(self, **kwargs):
-        print('运行后钩子',kwargs)
-
-ap = GeteWayApi(conf,options)
+application = ASGIAdapter(dispatcher, prefix="/api")
 ```
 
-## 在其他地方引入
+ASGI adapter 无额外框架依赖，支持 JSON、URL encoded form 和重复 query 参数。multipart 上传应使用宿主框架 adapter，或在上游 middleware 中解析。
 
+## Flask
+
+```python
+from api_shop.adapters import mount_flask
+
+mount_flask(app, dispatcher, prefix="/api", endpoint="api_shop")
 ```
-from api_shop import SingleApiShop
 
-# 可以获得的GeteWayApi的实例ap，方便在其他代码中调用api接口
-api_instance = SingleApiShop.get_single_apishop()
+它会注册 `/api` 和 `/api/<path>` 两个入口。`endpoint` 在同一个 Flask app 中必须唯一。
 
+## Django
+
+```python
+from api_shop.adapters import django_urlpatterns
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    *django_urlpatterns(dispatcher, prefix="api"),
+]
 ```
+
+如果项目已有更具体的 URL，应把 catch-all 放在它们之后。
+
+## Bottle
+
+```python
+from api_shop.adapters import mount_bottle
+
+mount_bottle(app, dispatcher, prefix="/api")
+```
+
+## Adapter 的边界
+
+adapter 只负责传输层转换：
+
+- 保留重复 query 值。
+- 区分 JSON body、form 和 files。
+- 不改变核心错误结构。
+- 将 `X-Request-ID` 写回响应。
+
+业务代码只依赖 `RequestContext`，不应依赖某个框架的全局 request。确有需要时可以临时读取 `ctx.raw`，但这会降低跨框架可移植性。

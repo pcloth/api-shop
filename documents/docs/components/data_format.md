@@ -1,85 +1,93 @@
 ---
-title: 数据类型扩展
+title: 校验与自定义类型
 ---
-## data_format 扩展
-::: tip 数据格式扩展
-- data_format.datetime 可以用来填写在conf.methods参数列表中的type，将request参数中的字符串`"2019-01-01 08:30:00"`转换成datetime格式
-- data_format.DataExpansion 自定义扩展基础类
-:::
 
-### data_format.datetime
-``` python
-from api_shop import data_format
-conf = [
-    {
-        'url': 'test',
-        'class': 'account.views.api_test',
-        'name': '测试方法',
-        'methods': {
-            'POST': [
-                {'name':'time', 'type': data_format.datetime, 'required': True, 'min': '2018-01-01', 'max': '2019-12-31', 'description': '时间'}
-            ],
-        }
-    },
-]
-```
-#### 提交请求的时候，会把传入的time参数转换成datetime格式，并检查是否大于等于2018年1月1日，小于等于2019年12月31日。
+# 校验与自定义类型
 
-### data_format.regex 正则格式校验
-将对上传的字符串进行正则校验。
-调用方法：
+2.0 使用 Pydantic v2 代替 1.x 的 `data_format` 和手写 `min/max/options` 转换器。
+
+## 长度和数值范围
+
 ```python
-from src.api_shop import data_format
+from typing import Annotated
+from pydantic import BaseModel, Field
+from api_shop import Query
 
-conf = [
-    {
-        'url': 'test',
-        'class': 'business_code.views.api_test',
-        'name': '测试接口',
-        'methods': {
-            'POST': [
-                {'name': 'email', 
-                    'type': data_format.regex(
-                        r'^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){0,4}@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){0,4}$',name='邮箱'), 
-                    'required': True, 
-                    'min': 6, 
-                    'max': 24, 
-                    'description': '邮箱'
-                },
-                {'name':'idcard', 'type': data_format.idcard, 'required': True, 'description': '身份证'},
-            ]
-        }
-    },
-]
+
+class ListInput(BaseModel):
+    keyword: Annotated[str, Query(), Field(min_length=2, max_length=50)]
+    page: Annotated[int, Query(), Field(ge=1, le=1000)] = 1
 ```
 
-### 内置更多的快速正则校验
-- data_format.numeric 数字型字符串
-- email 邮箱
-- data_format.chinese 中文
-- data_format.url url格式
-- data_format.cellphone 手机号码
-- data_format.idcard 身份证号码
+也可以把约束直接写在字段赋值上：
 
-
-
-
-### data_format.DataExpansion 自定义数据类型
-``` python
-from api_shop.data_format import DataExpansion
-from datetime import datetime as dt
-
-class datetime(object,metaclass=DataExpansion):
-    '''将str转换成datetime格式'''
-    
-    class_name = "<class 'data_format.datetime'>"
-
-    def __new__(self, string):
-        if ':' in string:
-            return dt.strptime(string, '%Y-%m-%d %H:%M:%S')
-        else:
-            return dt.strptime(string, '%Y-%m-%d')
+```python
+class ListInput(BaseModel):
+    keyword: Annotated[str, Query()] = Field(min_length=2, max_length=50)
 ```
-::: tip
-继承的时候请按照上面的写法，继承为元类，并直接用__new__方法来返回一个全新的格式
+
+`ge=0`、`le=0` 会正常生效，不再受 1.x truthy 判断影响。
+
+## 可选项
+
+```python
+from typing import Literal
+
+
+class SortInput(BaseModel):
+    order: Annotated[Literal["created", "name"], Query()] = "created"
+```
+
+## 日期、邮箱、URL 和 UUID
+
+```python
+from datetime import date, datetime
+from uuid import UUID
+from pydantic import AnyHttpUrl, EmailStr
+
+
+class ProfileInput(BaseModel):
+    user_id: Annotated[UUID, Path()]
+    birthday: Annotated[date | None, Query()] = None
+    at: Annotated[datetime | None, Query()] = None
+    email: Annotated[EmailStr, Query()]
+    callback: Annotated[AnyHttpUrl, Query()]
+```
+
+部分 Pydantic 类型需要安装其可选依赖，例如 `EmailStr` 通常需要 `email-validator`。
+
+## 自定义校验
+
+```python
+from typing import Annotated
+from pydantic import AfterValidator
+
+
+def valid_username(value: str) -> str:
+    if not value.replace("_", "").isalnum():
+        raise ValueError("username contains invalid characters")
+    return value
+
+
+Username = Annotated[str, AfterValidator(valid_username)]
+
+
+class UserInput(BaseModel):
+    username: Annotated[Username, Query()]
+```
+
+复杂的多字段规则可以使用 Pydantic `field_validator` 或 `model_validator`。
+
+## bool 规则
+
+api-shop 在交给 Pydantic 前会对顶层 bool 字段执行严格转换，只接受：
+
+- Python `True` / `False`
+- 整数 `1` / `0`
+- 字符串 `"true"` / `"false"` / `"1"` / `"0"`，大小写不敏感
+
+`yes`、`no`、`on`、空字符串或其他文本都会返回 422。
+
+::: warning 1.x data_format
+`data_format.datetime`、`data_format.regex` 等仅保留给 legacy API。新代码使用 Pydantic 标准类型、`Field` 和 validator。
 :::

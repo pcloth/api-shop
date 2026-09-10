@@ -1,4 +1,4 @@
-npm run docs:build
+corepack pnpm run docs:build
 sleep(1)
 del ..\docs -recurse
 sleep(1)

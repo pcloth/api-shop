@@ -1,10 +1,13 @@
-module.exports = {
+import { viteBundler } from '@vuepress/bundler-vite'
+import { defaultTheme } from '@vuepress/theme-default'
+import { defineUserConfig } from 'vuepress'
+
+export default defineUserConfig({
     base: '/api-shop/',
-    // dest: '../docs',
+    bundler: viteBundler(),
     head: [
-        // 添加百度统计
         [
-            "script",
+            'script',
             {},
             `var _hmt = _hmt || [];
             (function() {
@@ -12,29 +15,31 @@ module.exports = {
                 hm.src = "https://hm.baidu.com/hm.js?55405a77e01b4d671e84dd45880905a2";
                 var s = document.getElementsByTagName("script")[0];
                 s.parentNode.insertBefore(hm, s);
-            })();`
-        ]
+            })();`,
+        ],
     ],
     lang: 'zh-CN',
     title: 'Api-Shop',
-    description: '一个快速易用的restful-api接口工具包，兼容：django / flask / bottle。',
-    themeConfig: {
+    description: '框架无关、类型驱动的 Python API 契约与调度器。',
+    theme: defaultTheme({
         repo: 'pcloth/api-shop',
-        logo: 'https://pcloth.gitee.io/api-shop/logo.png',
+        logo: '/logo.png',
         contributors: false,
         navbar: [
             { text: '首页', link: '/' },
             { text: '介绍', link: '/introduction/' },
             { text: '快速上手', link: '/start/' },
+            { text: '从 1.x 升级', link: '/migration/' },
             {
-                text: '组件', children: [
+                text: '指南',
+                children: [
                     '/components/ApiShop.md',
                     '/components/SingleApiShop.md',
                     '/components/Api.md',
                     '/components/func.md',
                     '/components/data_format.md',
-                ]
+                ],
             },
-        ]
-    },
-}
+        ],
+    }),
+})
