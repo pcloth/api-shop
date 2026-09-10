@@ -24,7 +24,7 @@ footer: MIT Licensed | Copyright © 2019-2021 Pcloth
 2. 自动校验 request 提交的数据，并转换成指定格式，支持：int，float，list，dict，set，tuple，bool、自定义格式转换器和正则格式校验
 3. 自动生成 api 文档，并提供一个 web 页面可供查询和 mock 数据演示。
 4. 兼容 `django` , `flask` , `bottle` (如果不指定框架，默认按这个顺序识别框架)
-5. 自动生成接口`骨架文件`功能 beta（请谨慎开启）。
+5. 支持从接口配置生成 OpenAPI 3.0.3 文档。
 6. 多国语言支持，也支持自定义语言包。
 7. 文档热重载。
 8. 默认值支持方法函数。

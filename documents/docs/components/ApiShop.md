@@ -48,10 +48,6 @@ ap = ApiShop(conf,options)
 | debug                    | bool | True          | 是否开启调试信息                                                                                                                                                         |
 | use_gateway              | bool | False         | 是否启用网关模式，网关模式需要自行继承 SingleApiShop 类并处理执行钩子 before_running 和 after_running，参数错误等会调用 before_running，所有返回信息会调用 after_running |
 | docs_mock                | bool | False         | 文档中的接口测试是否自动填写随机值                                                                                                                                       |
-| auto_create_folder       | bool | False         | 自动创建文件夹（实验方法）                                                                                                                                               |
-| auto_create_file         | bool | False         | 自动创建文件（实验方法）                                                                                                                                                 |
-| auto_create_class        | bool | False         | 自动创建类（实验方法）                                                                                                                                                   |
-| auto_create_method       | bool | False         | 自动创建方法（实验方法）                                                                                                                                                 |
 
 ## 业务代码入口
 
@@ -66,10 +62,25 @@ app_name='api'
 
 urlpatterns = [
     path('api_data', ap.get_api_data, name='api_data'), # api文档需要的接口
+    path('openapi.json', ap.get_openapi_data, name='openapi'), # OpenAPI 3.0 JSON
     path('document/', ap.render_documents, name='document'), #api文档渲染的路由
     re_path(r'([\s\S]*)', ap.api_entry, name='index') # 接管api/下面其他的全部路由到api_entry入口方法
 ]
 ```
+
+## OpenAPI 3.0 兼容
+
+`get_openapi_schema()` 会根据当前 `conf` 返回 OpenAPI 3.0.3 字典，`get_openapi_data()` 则通过当前 Web 框架返回 JSON，可直接接入 Swagger UI、Redoc 或代码生成工具。
+
+```python
+schema = ap.get_openapi_schema(
+    title='My API',
+    version='1.0.0',
+    description='项目接口文档',
+)
+```
+
+路由中的 `<id>` 和 `<int:id>` 会转换为 `{id}` 路径参数。GET、DELETE、HEAD 和 OPTIONS 的非路径参数记录为 query，其他方法记录为 `application/json` request body。`required`、`min`、`max`、`default`、`options` 和 `description` 会映射到对应的 OpenAPI Schema 字段。
 
 ## 调用其他接口
 

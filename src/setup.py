@@ -29,7 +29,7 @@ setup(
     license='BSD License',
     packages=find_packages(),
     include_package_data=True, 
-    exclude_package_date={'':['.gitignore']},
+    exclude_package_data={'': ['.gitignore']},
     keywords=['api-shop', 'Flask-RESTful', 'Django REST framework', 'RESTful'],
     platforms=["all"],
     url='https://github.com/pcloth/api-shop',

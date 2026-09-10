@@ -1,3 +1,5 @@
 include README.MD
 recursive-include api_shop/ *
 recursive-include api_shop/static *
+global-exclude *.py[cod]
+global-exclude __pycache__

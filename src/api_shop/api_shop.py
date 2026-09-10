@@ -14,7 +14,7 @@ import importlib
 from .i18n import i18n_init
 from .__init__ import __version__
 from .url_parse import parse_rule
-from .autofill import auto_fill, check_fill_methods
+from .openapi import generate_openapi
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 i18 = i18n_init('zh')
@@ -134,6 +134,7 @@ class FW(Namespace):
                             _('Framework version is not compatible.'))
                     else:
                         haserr = True
+                    continue
                 self[key] = getattr(model, key)
         if not haserr:
             self.name = fwname
@@ -146,6 +147,8 @@ class FW(Namespace):
             # 从默认顺序加载框架
             for fwname in self.framework_order:
                 self.load_fw_model(fwname)
+                if self.name:
+                    break
         if not self.name:
             if not fwname:
                 raise BaseException(
@@ -404,6 +407,8 @@ class ApiShop():
         '''
         if not conf:
             conf = []
+        else:
+            conf = self.__copy_conf(conf)
 
         self.i18n = i18
 
@@ -418,11 +423,6 @@ class ApiShop():
             'debug': True,  # 默认开启调试信息
             'docs_mock':False, # 文档模式下，是否使用mock数据
             'use_gateway':False, # 是否封装了网关层，如果封装了，那么api-shop将不会处理请求，而是直接返回给网关
-            'auto_create_folder': False,  # 自动创建文件夹
-            'auto_create_file': False,  # 自动创建文件
-            'auto_create_class': False,  # 自动创建类
-            'auto_create_method': False,  # 自动创建方法
-
         }
 
         self.document_version = ''
@@ -436,8 +436,8 @@ class ApiShop():
 
             self.document_version = time.ctime(
                 os.stat(self.document_name).st_mtime)
-            self.document = open(self.document_name,
-                                 mode='r', encoding='utf-8').read()
+            with open(self.document_name, mode='r', encoding='utf-8') as document:
+                self.document = document.read()
         except:
             self.document = '<h1>' + _('document template not found') + '</h1>'
 
@@ -463,6 +463,19 @@ class ApiShop():
 
         self.conf = self.__make_model(conf)
         self.__init_url_rules()
+
+    @staticmethod
+    def __copy_conf(value):
+        '''复制配置容器，保留类、函数和 ORM 字段等对象引用。'''
+        if type(value) == dict:
+            return {key: ApiShop.__copy_conf(item) for key, item in value.items()}
+        if type(value) == list:
+            return [ApiShop.__copy_conf(item) for item in value]
+        if type(value) == tuple:
+            return tuple(ApiShop.__copy_conf(item) for item in value)
+        if type(value) == set:
+            return set(value)
+        return value
 
     def __class_to_json(self, methods):
         '''将python的dict数据对象类切换成字符串'''
@@ -491,19 +504,16 @@ class ApiShop():
         components = name.split('.')
         path = '.'.join(components[:-1])
         try:
-            exec('from {} import {}'.format(path, components[-1]))
-            return eval(components[-1])
+            model = importlib.import_module(path)
+            return getattr(model, components[-1])
         except Exception as ie:
             if self.options.get('debug') == True:
                 print('\n\n*******  api-shop errmsg  *******\n')
                 print('currnet_api:\nurl: {}\nclass: {}\n'.format(
                     thisconf.get('url'), thisconf.get('class')))
                 traceback.print_exc()
-                if auto_fill(thisconf, self.options) == True:
-                    # 自动生成文件或者方法，成功后重试一次。
-                    return self.__dynamic_import(thisconf)
-                else:
-                    os._exit(0)
+            # 业务类无法导入时，保留 1.x 终止服务的行为。
+            os._exit(0)
 
     def __make_model(self, conf):
         # 将字符串里的function模块和函数加载进来，并写入到run_function字段方便调用。
@@ -546,8 +556,6 @@ class ApiShop():
                         roots = self.__find_response_docs(key.upper(), nodes)
                         response_docs.update({key.upper(): roots})
                 conf[i]['methods_return'] = response_docs
-            if self.options.get('auto_create_method'):
-                check_fill_methods(model, conf[i])
             for key in ['get', 'post', 'delete', 'put', 'patch']:
                 # 把业务类子方法的文档添加到数据表
                 if hasattr(model, key):
@@ -667,54 +675,43 @@ class ApiShop():
 
     def __find_url_rule(self, url):
         # 从规则列表中匹配当前访问的url
-        value_dict = {}
         for obj in self.rule_maps:
-            url_ = url
-            line = obj['line']
-            key = obj['key']
-            for rule in line:
-                m = re.match(rule['regex'], url_)
-                if not m:
-                    break
-                pos, end = m.span()
-                url_ = url_[end:]  # 截断url
-                if rule['type'] == 'variable':
-                    # 动态查找
-                    value_dict.update({
-                        rule['variable']: m.group(0)  # {'value':'test'}
-                    })
-            if url_:
-                # 有剩余url，表示该行不匹配
-                continue
-            else:
-                return key, value_dict
+            match = obj['regex'].fullmatch(url)
+            if match:
+                return obj['key'], match.groupdict()
         return None, None
 
     def __add_url_rules(self, rule):
-        this_rule = []
-        _converter_args_re = re.compile(r'''
-        (?P<value>
-            (\w+)
-        )''', re.VERBOSE | re.UNICODE)
+        converter_regex = {
+            'default': r'[^/]+',
+            'str': r'[^/]+',
+            'string': r'[^/]+',
+            'int': r'[+-]?\d+',
+            'float': r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)',
+            'uuid': r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}',
+            'path': r'.+',
+        }
+        patterns = []
+        dynamic_count = 0
+        static_length = 0
         for converter, arguments, variable in parse_rule(rule):
             if converter is None:
-                # 静态地址
-                this_rule.append({
-                    'regex': re.escape(variable),
-                    'type': 'static'
-                })
+                patterns.append(re.escape(variable))
+                static_length += len(variable)
             else:
-                # 动态查询
-                this_rule.append({
-                    'regex': _converter_args_re,
-                    'variable': variable,
-                    'converter': converter,
-                    'type': 'variable'
-                })
+                dynamic_count += 1
+                pattern = converter_regex.get(converter, converter_regex['default'])
+                patterns.append('(?P<{}>{})'.format(variable, pattern))
         self.rule_maps.append({
-            'line': this_rule,
-            'key': rule
+            'regex': re.compile(''.join(patterns), re.UNICODE),
+            'key': rule,
+            'dynamic_count': dynamic_count,
+            'static_length': static_length,
         })
+        # 静态、更具体的路由优先，不受 conf 声明顺序影响。
+        self.rule_maps.sort(
+            key=lambda item: (item['dynamic_count'], -item['static_length'])
+        )
 
     def __init_url_rules(self):
         self.rule_maps = []  # 规则映射表
@@ -733,30 +730,25 @@ class ApiShop():
                         v = request.GET.getlist(k)
                         k = k[:-2]
                     data.update({k: v})
-            elif hasattr(request,'POST') and request.POST:
+            if hasattr(request,'POST') and request.POST:
                 data.update(request.POST.dict())
-            elif hasattr(request,'is_ajax') and request.is_ajax():
-                # axios payload 方式传递数据
-                # 如果使用axios，必须指定'X-Requested-With'='XMLHttpRequest'
-                data.update(json.loads(request.body))
-            else:
+            if hasattr(request, 'body') and request.body:
                 try:
                     data.update(json.loads(request.body))
-                except:
+                except (TypeError, ValueError):
                     pass
         if api.framework.name == 'flask':
             if request.args:
                 data.update(request.args.to_dict())
-            elif request.form:
+            if request.form:
                 data.update(request.form.to_dict())
-            else:
-                try:
-                    # 某些特殊错误的封装，将get,Content-Type: application/json
-                    jd = request.get_json()
-                    if jd:
-                        data.update(jd)
-                except:
-                    pass
+            try:
+                # 某些特殊错误的封装，将get,Content-Type: application/json
+                jd = request.get_json(silent=True)
+                if jd:
+                    data.update(jd)
+            except (TypeError, ValueError):
+                pass
         if api.framework.name == 'bottle':
             if request.GET:
                 data.update(request.GET)
@@ -807,10 +799,14 @@ class ApiShop():
                     # 容器类，json验证后转换
                     value = type_(json.loads(value))
                 elif type_ == bool:
-                    if value == 'true':
+                    if value is True or value == 1 or (
+                            type(value) == str and value.lower() in ['true', '1']):
                         value = True
-                    else:
+                    elif value is False or value == 0 or (
+                            type(value) == str and value.lower() in ['false', '0']):
                         value = False
+                    else:
+                        raise ValueError(_('invalid boolean value'))
                 else:
                     # 其他类型或者类型转换器
                     value = type_(value)
@@ -829,8 +825,8 @@ class ApiShop():
                 return _('parameter') + ' {} '.format(name) + _('must be in the list of options') + ' : {}'.format(json.dumps(options)), None
 
         # 检查最小值/长度
-        if min_:
-            if type(value) in [str, list, dict, set]:
+        if min_ is not None:
+            if type(value) in [str, list, dict, set, tuple]:
                 if len(value) < min_:
                     return _('parameter')+' {} '.format(name)+_('minimum length')+' {} '.format(min_), None
             elif type(value) in [int, float, complex]:
@@ -842,8 +838,8 @@ class ApiShop():
                     return _('parameter')+' {} '.format(name)+_('minimum value')+' {} '.format(min_), None
 
         # 检查最大值/长度
-        if max_:
-            if type(value) in [str, list, dict, set]:
+        if max_ is not None:
+            if type(value) in [str, list, dict, set, tuple]:
                 if len(value) > max_:
                     return _('parameter')+' {} '.format(name)+_('maximum length')+' {} '.format(max_), None
             elif type(value) in [int, float, bool, complex]:
@@ -962,15 +958,35 @@ class ApiShop():
 
     def render_documents(self, request, *url):
         '''渲染文档'''
-        if self.document_version != time.ctime(os.stat(self.document_name).st_mtime):
-            # 如果文档发生变化，读取文档。
-            self.document = open(self.document_name,
-                                 mode='r', encoding='utf-8').read()
+        try:
+            document_version = time.ctime(os.stat(self.document_name).st_mtime)
+            if self.document_version != document_version:
+                # 如果文档发生变化，读取文档。
+                with open(self.document_name, mode='r', encoding='utf-8') as document:
+                    self.document = document.read()
+                self.document_version = document_version
+        except OSError:
+            pass
         return api.framework.template(self.document)
 
     def get_api_data(self, request, *url):
         '''返回给文档页面数据'''
         return api.framework.json({'data': self.conf, 'options': self.options})
+
+    def get_openapi_schema(self, title='api-shop API', version=None,
+                           description=None):
+        '''返回根据当前 conf 生成的 OpenAPI 3.0 文档。'''
+        return generate_openapi(
+            self.conf,
+            title=title,
+            version=version or self.options.get('version', __version__),
+            description=description,
+            base_url=self.options.get('base_url'),
+        )
+
+    def get_openapi_data(self, request=None, *url):
+        '''通过当前 Web 框架返回 OpenAPI JSON 文档。'''
+        return api.framework.json(self.get_openapi_schema())
 
 
 single_apishop = None
@@ -981,13 +997,24 @@ def singleton(cls):
             global single_apishop
             if not single_apishop:
                 single_apishop = super().__new__(cls)
+                single_apishop._singleton_needs_init = True
             elif kwargs and kwargs.get('force'):
                 # 参数里包含force=True，强制覆盖上一个
                 single_apishop = super().__new__(cls)
+                single_apishop._singleton_needs_init = True
             elif args or kwargs:
                 # 有参数自动覆盖上一个
                 single_apishop = super().__new__(cls)
+                single_apishop._singleton_needs_init = True
+            else:
+                single_apishop._singleton_needs_init = False
             return single_apishop
+
+        def __init__(self, *args, **kwargs):
+            kwargs.pop('force', False)
+            if self._singleton_needs_init:
+                super().__init__(*args, **kwargs)
+            self._singleton_needs_init = False
     return SingletonWrapper
 
 @singleton

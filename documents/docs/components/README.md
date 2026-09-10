@@ -108,10 +108,6 @@ options = {
 | lang_pack                | dict         | 无      |                                                                             扩展语言包，如果你想让api-shop支持更多语言 |
 | name_classification      | list         | 无      |                                                                         用于默认的文档模板对接口名称进行过滤，便于查找 |
 | url_classification       | list         | 无      |                           用于默认的文档模板对接口url进行过滤，便于查找。例子：'url_classification':['weixin','login'] |
-| auto_create_folder       | bool         | False   |                                                                      自动创建文件夹，debug参数也必须为True才可以生效。 |
-| auto_create_file         | bool         | False   |                                                                        自动创建文件，debug参数也必须为True才可以生效。 |
-| auto_create_class        | bool         | False   |                                                                          自动创建类，debug参数也必须为True才可以生效。 |
-| auto_create_method       | bool         | False   |                                                                        自动创建方法，debug参数也必须为True才可以生效。 |
 | framework                | str          | 无      |        手动指定框架，目前支持django、flask、bottle，如果不指定，将按顺序识别框架，如果同时安装了多个框架，请手动指定。 |
 | debug                    | bool         | True    |                                                                                  加载api业务代码的时候，遇到错误抛出。 |
 
@@ -200,4 +196,3 @@ def hello_world(url):
 ::: tip
 和get_api_result_json方法是一样的，不过get_api_result_response的返回值是一个response
 :::
-

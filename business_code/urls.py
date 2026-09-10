@@ -54,6 +54,7 @@ app_name = 'api'
 
 urlpatterns = [
     path('api_data', af.get_api_data, name='api_data'),
+    path('openapi.json', af.get_openapi_data, name='openapi'),
     path('document/', af.render_documents, name='document'),
     re_path(r'([\s\S]*)', af.api_entry, name='index')
 ]

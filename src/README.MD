@@ -16,7 +16,7 @@
 2. 自动校验request提交的数据，并转换成指定格式，支持：int，float，list，dict，set，tuple，bool
 3. 自动生成api文档，并提供一个web页面可供查询和mock数据演示。
 4. 兼容 `django` , `flask` , `bottle` (如果不指定框架，默认按这个顺序识别框架)
-5. 自动生成接口`骨架文件`功能（请谨慎开启）。
+5. 支持从接口配置生成 OpenAPI 3.0.3 文档。
 6. 自定义格式转换器，data_format.datetime格式转换类；'2019-01-18 23:25:25' to datetime
 7. 支持正则格式校验。
 8. 多国语言支持，也支持自定义语言包。
@@ -32,5 +32,4 @@
 
 ## [Online Documents](https://pcloth.gitee.io/api-shop/)
 ## [在线文档](https://pcloth.gitee.io/api-shop/)
-
 
