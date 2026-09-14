@@ -1,4 +1,8 @@
-module.exports = {
+import { viteBundler } from '@vuepress/bundler-vite'
+import { defaultTheme } from '@vuepress/theme-default'
+import { defineUserConfig } from 'vuepress'
+
+export default defineUserConfig({
     base: '/api-shop/',
     // dest: '../docs',
     head: [
@@ -18,7 +22,8 @@ module.exports = {
     lang: 'zh-CN',
     title: 'Api-Shop',
     description: '一个快速易用的restful-api接口工具包，兼容：django / flask / bottle。',
-    themeConfig: {
+    bundler: viteBundler(),
+    theme: defaultTheme({
         repo: 'pcloth/api-shop',
         logo: 'https://pcloth.gitee.io/api-shop/logo.png',
         contributors: false,
@@ -36,5 +41,5 @@ module.exports = {
                 ]
             },
         ]
-    },
-}
+    }),
+})
