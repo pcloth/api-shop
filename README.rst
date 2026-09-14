@@ -10,10 +10,10 @@ api-shop
 
 ============================================================================================================================================================================================================================================================================================
 
-`Online Documents <https://pcloth.gitee.io/api-shop/>`_
+`Online Documents <https://pcloth.github.io/api-shop/>`_
 -----------------------------------------------------------
 
-`在线文档 <https://pcloth.gitee.io/api-shop/>`_
+`在线文档 <https://pcloth.github.io/api-shop/>`_
 ---------------------------------------------------
 
 ..
@@ -53,8 +53,8 @@ api-shop
 #. 支持在 Api 类中定义 response_docs 来制作返回值文档，并支持模型字段引入；以及模型部分字段引入类：ApiResponseModelFields
 #. 添加了全局单例类 SingleApiShop，用来替代 ApiShop，优点是支持用户封装后覆盖单例
 
-`Online Documents <https://pcloth.gitee.io/api-shop/>`_
+`Online Documents <https://pcloth.github.io/api-shop/>`_
 -----------------------------------------------------------
 
-`在线文档 <https://pcloth.gitee.io/api-shop/>`_
+`在线文档 <https://pcloth.github.io/api-shop/>`_
 ---------------------------------------------------

@@ -26,7 +26,7 @@ export default defineUserConfig({
     bundler: viteBundler(),
     theme: defaultTheme({
         repo: 'pcloth/api-shop',
-        logo: 'https://pcloth.gitee.io/api-shop/logo.png',
+        logo: 'https://pcloth.github.io/api-shop/logo.png',
         contributors: false,
         navbar: [
             { text: '首页', link: '/' },
