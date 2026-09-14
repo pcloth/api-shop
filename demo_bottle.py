@@ -51,8 +51,6 @@ def api_index(url):
     print('*'*20,url)
     if url == 'document/':
         return af.render_documents(request, url)
-    if url == 'api_data':
-        return af.get_api_data(request, url)
     if url == 'openapi.json':
         return af.get_openapi_data(request, url)
     return af.api_entry(request, url)

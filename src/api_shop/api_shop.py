@@ -17,6 +17,11 @@ from .url_parse import parse_rule
 from .openapi import generate_openapi
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SCALAR_ASSET_NAME = 'scalar-1.68.0.js'
+SCALAR_ASSET_ROUTE = '_api_shop/{}'.format(SCALAR_ASSET_NAME)
+SCALAR_ASSET_PATH = os.path.join(
+    BASE_DIR, 'api_shop', 'static', SCALAR_ASSET_NAME)
+_scalar_asset = None
 i18 = i18n_init('zh')
 _ = i18._
 
@@ -111,6 +116,23 @@ class FW(Namespace):
                 return self[model_name](data), status_code
         else:
             return data, status_code
+
+    def asset(self, data, content_type, cache_control, status_code=200):
+        '''返回带正确 MIME 类型和浏览器缓存头的静态资源。'''
+        headers = {
+            'Content-Type': content_type,
+            'Cache-Control': cache_control,
+        }
+        if self.name == 'django':
+            response = self.HttpResponse(
+                data, status=status_code, content_type=content_type)
+            response['Cache-Control'] = cache_control
+            return response
+        if self.name == 'bottle':
+            return self.HTTPResponse(
+                body=data, status=status_code, headers=headers)
+        # Flask 支持 (body, status, headers)，无需应用额外注册静态目录。
+        return data, status_code, headers
 
     def load_fw_model(self, fwname, err_out=False):
         '''加载框架的方法'''
@@ -459,8 +481,6 @@ class ApiShop():
         self.url_dict = {}
         # url方法字典
         self.url_methods = {}
-        self.api_data = []
-
         self.conf = self.__make_model(conf)
         self.__init_url_rules()
 
@@ -931,6 +951,9 @@ class ApiShop():
 
     def api_entry(self, request, *url):
         '''api入口'''
+        if len(url) == 1 and url[0].lstrip('/') == SCALAR_ASSET_ROUTE:
+            return self.render_document_asset()
+
         model, key, value_dict = self.__find_api_function(url)
         methons = self.__find_api_methons(key)
 
@@ -969,9 +992,30 @@ class ApiShop():
             pass
         return api.framework.template(self.document)
 
+    def render_document_asset(self):
+        '''返回 api-shop 内置且可长期缓存的 Scalar 前端文件。'''
+        global _scalar_asset
+        try:
+            if _scalar_asset is None:
+                with open(SCALAR_ASSET_PATH, mode='rb') as asset:
+                    _scalar_asset = asset.read()
+        except OSError:
+            return api.framework.http('document asset not found', 404)
+        return api.framework.asset(
+            _scalar_asset,
+            'application/javascript; charset=utf-8',
+            'public, max-age=31536000, immutable',
+        )
+
     def get_api_data(self, request, *url):
-        '''返回给文档页面数据'''
-        return api.framework.json({'data': self.conf, 'options': self.options})
+        '''旧版文档数据接口；仅返回迁移提示，不再暴露内部配置。'''
+        return api.framework.json({
+            'status': 'gone',
+            'message': _(
+                'The legacy get_api_data document endpoint has been removed. '
+                'Use get_openapi_data instead.'),
+            'replacement': 'get_openapi_data',
+        }, 410)
 
     def get_openapi_schema(self, title='api-shop API', version=None,
                            description=None):

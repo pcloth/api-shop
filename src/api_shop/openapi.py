@@ -1,5 +1,6 @@
 """OpenAPI 3.0 generation for api-shop configuration."""
 
+import inspect
 import re
 
 
@@ -47,6 +48,22 @@ def _schema(parameter):
     if type_name not in TYPE_SCHEMAS:
         schema['x-python-type'] = type_name
     return schema
+
+
+def _clean_document(value):
+    if not value:
+        return None
+    document = inspect.cleandoc(str(value)).strip()
+    return document or None
+
+
+def _document_summary(document):
+    if not document:
+        return None
+    return next(
+        (line.strip() for line in document.splitlines() if line.strip()),
+        None,
+    )
 
 
 def _operation(method, parameters, path_names, operation_id):
@@ -110,11 +127,16 @@ def generate_openapi(conf, title='api-shop API', version='1.0.0',
         'openapi': '3.0.3',
         'info': {'title': title, 'version': str(version)},
         'paths': {},
+        'tags': [],
     }
     if description:
         document['info']['description'] = description
     if base_url:
         document['servers'] = [{'url': base_url}]
+
+    tag_names = set()
+    tag_groups = {}
+    tag_group_by_name = {}
 
     for endpoint in conf:
         urls = endpoint.get('url', [])
@@ -125,6 +147,21 @@ def generate_openapi(conf, title='api-shop API', version='1.0.0',
             path = PATH_PARAMETER_RE.sub(r'{\1}', configured_path)
             if not path.startswith('/'):
                 path = '/' + path
+
+            tag_name = str(endpoint.get('name') or path)
+            endpoint_document = _clean_document(endpoint.get('document'))
+            if tag_name not in tag_names:
+                tag = {'name': tag_name}
+                if endpoint_document:
+                    tag['description'] = endpoint_document
+                document['tags'].append(tag)
+                tag_names.add(tag_name)
+
+            module_name = path.strip('/').split('/', 1)[0] or 'root'
+            if tag_name not in tag_group_by_name:
+                tag_groups.setdefault(module_name, []).append(tag_name)
+                tag_group_by_name[tag_name] = module_name
+
             path_item = document['paths'].setdefault(path, {})
             for method, parameters in endpoint.get('methods', {}).items():
                 method = method.upper()
@@ -133,9 +170,25 @@ def generate_openapi(conf, title='api-shop API', version='1.0.0',
                     re.sub(r'[^A-Za-z0-9_]+', '_', path).strip('_') or 'root',
                 )
                 operation = _operation(method, parameters, path_names, operation_id)
-                if endpoint.get('name'):
-                    operation['summary'] = endpoint['name']
-                if endpoint.get('document'):
-                    operation['description'] = endpoint['document'].strip()
+                operation['tags'] = [tag_name]
+
+                method_documents = endpoint.get('methods_documents', {})
+                method_document = _clean_document(
+                    method_documents.get(method)
+                    or method_documents.get(method.lower())
+                )
+                if method_document:
+                    operation['summary'] = _document_summary(method_document)
+                    operation['description'] = method_document
+                else:
+                    operation['summary'] = '{} - {}'.format(tag_name, method)
+                    if endpoint_document:
+                        operation['description'] = endpoint_document
                 path_item[method.lower()] = operation
+
+    if tag_groups:
+        document['x-tagGroups'] = [
+            {'name': group_name, 'tags': group_tags}
+            for group_name, group_tags in tag_groups.items()
+        ]
     return document

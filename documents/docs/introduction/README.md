@@ -33,14 +33,14 @@ af = ApiShop(
 def hello_world(url):
     if url == 'document/':
         return af.render_documents(request, url)
-    if url == 'api_data':
-        return af.get_api_data(request, url)
+    if url == 'openapi.json':
+        return af.get_openapi_data(request, url)
 
     return af.api_entry(request, url)
 ```
 
 ::: tip
-其中，`document/`这个路由是可以修改的，`api_data`这个路由确是需要固定的，它是为了默认的文档工具能够拿到接口数据。除非你自己重写文档页面。
+其中，`document/` 路由可以修改；默认文档模板从相邻的 `openapi.json` 路由读取 OpenAPI 3.0 数据。
 :::
 
 ## 生命周期

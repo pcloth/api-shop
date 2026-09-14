@@ -61,7 +61,6 @@ ap = ApiShop(conf,options)
 app_name='api'
 
 urlpatterns = [
-    path('api_data', ap.get_api_data, name='api_data'), # api文档需要的接口
     path('openapi.json', ap.get_openapi_data, name='openapi'), # OpenAPI 3.0 JSON
     path('document/', ap.render_documents, name='document'), #api文档渲染的路由
     re_path(r'([\s\S]*)', ap.api_entry, name='index') # 接管api/下面其他的全部路由到api_entry入口方法
@@ -70,7 +69,11 @@ urlpatterns = [
 
 ## OpenAPI 3.0 兼容
 
-`get_openapi_schema()` 会根据当前 `conf` 返回 OpenAPI 3.0.3 字典，`get_openapi_data()` 则通过当前 Web 框架返回 JSON，可直接接入 Swagger UI、Redoc 或代码生成工具。
+`get_openapi_schema()` 会根据当前 `conf` 返回 OpenAPI 3.0.3 字典，`get_openapi_data()` 则通过当前 Web 框架返回 JSON。默认的 `document.html` 已内置 Scalar API Reference，访问 `document/` 即可得到带侧边栏、搜索、代码示例和在线请求功能的文档页面。
+
+Scalar 前端文件随 api-shop 一起安装，不依赖 jsDelivr 等外部 CDN。文档页会从同域的 `../_api_shop/scalar-1.68.0.js` 加载它；该内部地址由现有的 `api_entry` 通配入口直接响应，并带有一年期不可变缓存，因此接入项目不需要再添加静态资源路由。
+
+旧版 `get_api_data()` 已停止返回 `conf` 和 `options`，现有调用会收到 HTTP 410 和迁移提示。新项目不再配置 `api_data` 路由，统一使用 `get_openapi_data()` 提供文档数据。
 
 ```python
 schema = ap.get_openapi_schema(
@@ -81,6 +84,29 @@ schema = ap.get_openapi_schema(
 ```
 
 路由中的 `<id>` 和 `<int:id>` 会转换为 `{id}` 路径参数。GET、DELETE、HEAD 和 OPTIONS 的非路径参数记录为 query，其他方法记录为 `application/json` request body。`required`、`min`、`max`、`default`、`options` 和 `description` 会映射到对应的 OpenAPI Schema 字段。
+
+每个接口配置的 `name` 会成为一个功能分组，同一 URL 下的 GET、POST、DELETE 等方法会集中显示。业务方法的 docstring 第一行会成为该方法的独立标题，完整 docstring 会成为详细说明：
+
+```python
+class user_bind(Api):
+    """用户黑名单功能的整体说明。"""
+
+    def get(self, request, data):
+        """查询用户黑名单。
+
+        支持按照 user_id 和 sender 过滤。
+        """
+        pass
+
+    def post(self, request, data):
+        """新增用户黑名单。
+
+        创建一条新的屏蔽记录。
+        """
+        pass
+```
+
+请使用三引号 docstring 描述业务方法。普通 `#` 注释不会保留在运行时，因此无法稳定地生成 OpenAPI 文档。
 
 ## 调用其他接口
 

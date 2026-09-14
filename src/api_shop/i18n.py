@@ -25,6 +25,7 @@ class i18n_init():
             'Did not find the framework': 'Did not find the framework. Please install ',
             'must be in the list of options': 'must be in the list of options',
             'value is not string type number.':'value is not string type number.',
+            'The legacy get_api_data document endpoint has been removed. Use get_openapi_data instead.': 'The legacy get_api_data document endpoint has been removed. Use get_openapi_data instead.',
         },
         'zh': {
             'no attributes found': '没有找到属性：',
@@ -48,6 +49,7 @@ class i18n_init():
             'request.method and method are not equal': 'request.method和method不相等',
             'api-shop return result is not success.': 'api-shop返回结果不成功。',
             'value is not string type number.': '值不是字符串数字。',
+            'The legacy get_api_data document endpoint has been removed. Use get_openapi_data instead.': '旧版 get_api_data 文档数据接口已移除，请改用 get_openapi_data。',
             'numeric': '字符串数字',
             'email': '邮箱',
             'chinese': '中文',

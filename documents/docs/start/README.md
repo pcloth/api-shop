@@ -42,7 +42,7 @@ ap = ApiShop(conf,options)
 app_name='api'
 
 urlpatterns = [
-    path('api_data', ap.get_api_data, name='api_data'), # api文档需要的接口
+    path('openapi.json', ap.get_openapi_data, name='openapi'), # OpenAPI 3.0 JSON
     path('document/', ap.render_documents, name='document'), #api文档渲染的路由
     re_path(r'([\s\S]*)', ap.api_entry, name='index') # 接管api/下面其他的全部路由到api_entry入口方法
 ]
@@ -106,8 +106,8 @@ def hello_world(url):
     print(url)
     if url=='document/':
         return af.render_documents(request,url)
-    if url=='api_data':
-        return af.get_api_data(request,url)
+    if url=='openapi.json':
+        return af.get_openapi_data(request,url)
 
     return af.api_entry(request,url)
 
@@ -163,8 +163,8 @@ def api_index(url):
     print('*'*20,url)
     if url == 'document/':
         return af.render_documents(request, url)
-    if url == 'api_data':
-        return af.get_api_data(request, url)
+    if url == 'openapi.json':
+        return af.get_openapi_data(request, url)
     return af.api_entry(request, url)
 
 run(host='localhost', port=8080,reloader=True,debug=True)
