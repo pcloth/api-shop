@@ -22,6 +22,7 @@ export default defineUserConfig({
     lang: 'zh-CN',
     title: 'Api-Shop',
     description: '一个快速易用的restful-api接口工具包，兼容：django / flask / bottle。',
+    userStyle: '.vuepress/styles/index.scss',
     bundler: viteBundler(),
     theme: defaultTheme({
         repo: 'pcloth/api-shop',
